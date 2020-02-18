@@ -50,6 +50,12 @@ jsPsych.plugins["planet-response"] = (function() {
         default: 0,
         description: 'Points accumulated up to this point'
       },		
+		show_total_points: {
+        type: jsPsych.plugins.parameterType.BOOL,
+        pretty_name: 'Total Points',
+        default: true,
+        description: 'Show points accumulated up to this point'
+      },		
 		ship_space: {
         type: jsPsych.plugins.parameterType.INT,
         pretty_name: 'Spacer between stimuli',
@@ -192,7 +198,7 @@ jsPsych.plugins["planet-response"] = (function() {
 		shield_charging_time: {
 			type: jsPsych.plugins.parameterType.INT,
 			pretty_name: 'Shield charging duration',			
-			default: 1000,
+			default: 2000,
 			description: 'Duration of shield charging prompt.'
 		},
 		probability_shield: {
@@ -237,7 +243,7 @@ jsPsych.plugins["planet-response"] = (function() {
 				html += 'draggable="false" ';
 				html +='></img>';
 				
-				//show prompt if there is one
+				//show prompt if there is one -- this is really just the planet names
 				if (trial.prompt !== null) {
 					html += '<div id="option-prompt-' + i + '">'
 					html += trial.prompt[i];
@@ -249,6 +255,7 @@ jsPsych.plugins["planet-response"] = (function() {
 					html += '<div id="ship-div" style="display:inline-block; ' +
 						'vertical-align: top; ' +
 						'width:' + trial.ship_space + 'px;">' +
+						'<div id="total-score-box" style="height:100px;"></div>' + 
 						'<div id="ship-score-box" style="height:100px;"></div>' +
 						'<div id="ship-img-box"></div>' +
 						'<div id="ship-shield-box"></div>' + 
@@ -259,8 +266,20 @@ jsPsych.plugins["planet-response"] = (function() {
 
 		html += '</div>'
 		
+		//If total score is to be displayed, update div
+		function updateScore(points){
+			if (trial.show_total_points){
+				scoreDiv = display_element.querySelector('#total-score-box')
+				scoreDiv.style.color = 'black'
+				scoreDiv.style.fontSize = '30px'
+				scoreDiv.innerHTML = 'Total points: ' + points
+			}
+		}
+		
 		display_element.innerHTML = html;
-
+		
+		updateScore(trial.points)
+		
 		// start timing
 		var start_time = performance.now();
 
@@ -410,7 +429,6 @@ jsPsych.plugins["planet-response"] = (function() {
 				scoreColor = 'red'
 			}
 			trial.points += response.gain
-			
 			// Wait before showing outcome
 			setTimeout(function(){
 				display_element.querySelector('#planet-score-box-'+choice).innerHTML = '<div id="scoreDiv">' + displayScore + '</div>'
@@ -420,6 +438,7 @@ jsPsych.plugins["planet-response"] = (function() {
 				var scoreDivWidth = scoreDiv.getBoundingClientRect().width
 				scoreDiv.style.position = 'relative'
 				scoreDiv.style.left = planetWidth/2 - scoreDivWidth/2 + 'px'
+				updateScore(trial.points)
 				//Proceed to next step (ship or end trial)
 				if (trial.show_ship){
 					show_ship(choice);
@@ -500,7 +519,6 @@ jsPsych.plugins["planet-response"] = (function() {
 				// 20% of points
 				response.loss = Math.round(trial.points * .2)
 				trial.points -= response.loss
-				
 				// Display and add to points
 
 				var shipDiv = display_element.querySelector('#ship-score-box')
@@ -519,6 +537,7 @@ jsPsych.plugins["planet-response"] = (function() {
 				response.shield_activated = false;
 				var shieldDiv = display_element.querySelector('#ship-shield-box')
 				shieldDiv.style.opacity = .5
+				updateScore(trial.points)
 			}
 			//End trial
 			end_trial()

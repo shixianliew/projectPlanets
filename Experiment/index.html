@@ -4,9 +4,8 @@
 	<title>My experiment</title>
 	<script src="jspsych-6.1.0/jspsych.js"></script>
 	<link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
-	<script src="jspsych-6.1.0/plugins/jspsych-html-keyboard-response.js"></script>
+	<script src="jspsych-6.1.0/plugins/jspsych-html-button-response.js"></script>
 	<script src="jspsych-6.1.0/plugins/jspsych-image-keyboard-response.js"></script>
-	<script src="jspsych-6.1.0/plugins/jspsych-image-mouseclick-response.js"></script>
 	<script src="jspsych-6.1.0/plugins/planet-response.js"></script>
 	
   </head>
@@ -18,15 +17,17 @@
 
 	// Define general instructions
 	var instr_gen = {
-		type: 'html-keyboard-response',
+		type: 'html-button-response',
 		stimulus: 'General instructions go here.',
+		choices: ['Click this button to proceed.'],
 	}
 	timeline.push(instr_gen);
 
 	// Define pre-block instructions
 	var instr_p1 = {
-		type: 'html-keyboard-response',
+		type: 'html-button-response',
 		stimulus: 'Pre-block instructions go here.',
+		choices: ['Click this button to proceed.'],
 	}
 	timeline.push(instr_p1);
 
@@ -116,7 +117,6 @@
 		prompt: ['Planet A','Planet B'], //jsPsych.timelineVariable('prompt'),	
 		ship_stimulus: ['img/ship1.png','img/ship2.png'],//jsPsych.timelineVariable('ship_stimulus'),
 		show_ship: false,
-		//rewards:[50,150],
 		data: {block_type:'planet_noship',block_number:block_number},//jsPsych.timelineVariable('data'),
 		on_start: function(trial){
 			trial.points = points;
@@ -139,12 +139,14 @@
 		timeline.push(block_noship)
 		//value check p1
 		var value_p1 = {
-			type: 'html-keyboard-response',
-			stimulus: 'Value check first phase. Press any key to continue',
+			type: 'html-button-response',
+			stimulus: 'Value check first phase.',
+			choices: ['Click this button to proceed.'],
 		}
 		var infer_p1 = {
-			type: 'html-keyboard-response',
-			stimulus: 'Inference check first phase. Press any key to continue',
+			type: 'html-button-response',
+			stimulus: 'Inference check first phase. ',
+			choices: ['Click this button to proceed.'],
 		}
 		
 		timeline.push(value_p1);
@@ -154,29 +156,16 @@
 	// Push next block
 	// Define pre-block instructions
 	var instr_p2 = {
-		type: 'html-keyboard-response',
+		type: 'html-button-response',
 		stimulus: 'Pre-block instructions with pirate warnings? go here.',
+		choices: ['Click this button to proceed.'],
 	}
 	timeline.push(instr_p2);
 	//Copy a planet with ship version from noship
 	var planet_ship = Object.assign({},planet_noship); //Note that nested objects might not be copied and simply referenced? Be careful when trying to edit nested objects. Will probably need to clone them separately.
 	planet_ship.show_ship = true;
-	// var planet_ship = {
-	// 	type: 'planet-response',
-	// 	stimulus: ['img/blue.png','img/orange.png'],// jsPsych.timelineVariable('stimulus'),
-	// 	prompt: ['Planet A','Planet B'], //jsPsych.timelineVariable('prompt'),	
-	// 	ship_stimulus: ['img/ship1.png','img/ship2.png'],//jsPsych.timelineVariable('ship_stimulus'),
-	// 	show_ship: true,
-	// 	data: {block_type:'planet_ship'},//jsPsych.timelineVariable('data'),
-	// 	on_start: function(trial){
-	// 		trial.points = points;
-	// 		trial.data.block_number = block_number;
-	// 	},
-	// 	on_finish: function(data){
-	// 		points = data.points_total;
-	// 	}		
-	// }
-	//Loop over specified number of blocks
+	planet_ship.shield_charging_time = 2000;
+	planet_ship.ship_attack_time = 6000;
 	for (var i=0; i<nBlocks_p2; i++){
 		var block_ship = {
 			timeline: [planet_ship],
@@ -186,12 +175,14 @@
 		timeline.push(block_ship)
 		//value check p1
 		var value_p2 = {
-			type: 'html-keyboard-response',
-			stimulus: 'Value check second phase. Press any key to continue',
+			type: 'html-button-response',
+			stimulus: 'Value check second phase.',
+			choices: ['Click this button to proceed.'],
 		}
 		var infer_p2 = {
-			type: 'html-keyboard-response',
-			stimulus: 'Inference check second phase. Press any key to continue',
+			type: 'html-button-response',
+			stimulus: 'Inference check second phase.',
+			choices: ['Click this button to proceed.'],
 		}
 		
 		timeline.push(value_p2);
@@ -201,8 +192,9 @@
 
 	// Final page/debrief
 	var infer_p2 = {
-		type: 'html-keyboard-response',
-		stimulus: 'Final page. Press any key to continue',
+		type: 'html-button-response',
+		stimulus: 'Final page.',
+		choices: ['Click this button to proceed.'],
 	}
 
 	//Start experiment

@@ -1,6 +1,5 @@
 Repo for planets project.
 
-To test the website, download the whole repo and in your preferred browser, navigate to Experiment/index.html. So it
-might be something like `Downloads/projectPlanets/Experiment/index.html`.
+To test the website, go here: [https://raw.githack.com/shixianliew/projectPlanets/master/Experiment/index.html](https://raw.githack.com/shixianliew/projectPlanets/master/Experiment/index.html)
 
 More info to come.
