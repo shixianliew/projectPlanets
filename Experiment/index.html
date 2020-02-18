@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<title>My experiment</title>
+	<script src="jspsych-6.1.0/jspsych.js"></script>
+	<link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+	<script src="jspsych-6.1.0/plugins/jspsych-html-keyboard-response.js"></script>
+	<script src="jspsych-6.1.0/plugins/jspsych-image-keyboard-response.js"></script>
+	<script src="jspsych-6.1.0/plugins/jspsych-image-mouseclick-response.js"></script>
+	<script src="jspsych-6.1.0/plugins/planet-response.js"></script>
+	
+  </head>
+  <body>Heya</body>
+  <script>
+
+	//Initialise timeline
+	var timeline = [];
+
+	// Define general instructions
+	var instr_gen = {
+		type: 'html-keyboard-response',
+		stimulus: 'General instructions go here.',
+	}
+	timeline.push(instr_gen);
+
+	// Define pre-block instructions
+	var instr_p1 = {
+		type: 'html-keyboard-response',
+		stimulus: 'Pre-block instructions go here.',
+	}
+	timeline.push(instr_p1);
+
+	//Define a welcome trial
+	// var welcome = {
+	// 	type: 'html-keyboard-response',
+	// 	stimulus: 'Welcome to SINGAPORE. Now press any key to proceed can.'
+	// }
+	// //Push the trial into the timeline
+	// timeline.push(welcome);
+
+	// //Instructions trial
+	// var instructions = {
+	// 	type: 'html-keyboard-response',
+	// 	stimulus: "<p>In this experiment, a circle will appear in the center " +
+	// 		"of the screen.</p><p>If the circle is <strong>blue</strong>, " +
+	// 		"press the letter F on the keyboard as fast as you can.</p>" +
+	// 		"<p>If the circle is <strong>orange</strong>, press the letter J " +
+	// 		"as fast as you can.</p>" +
+	// 		"<div style='width: 700px;'>"+
+	// 		"<div style='float: left;'><img src='img/blue.png'></img>" +
+	// 		"<p class='small'><strong>Press the F key</strong></p></div>" +
+	// 		"<div class='float: right;'><img src='img/orange.png'></img>" +
+	// 		"<p class='small'><strong>Press the J key</strong></p></div>" +
+	// 		"</div>"+
+	// 		"<p>Press any key to begin.</p>"
+	// };
+	// //Push the trial into the timeline
+	// timeline.push(instructions);
+
+	//Experimental trials
+	var test_stim = [
+		{stimulus: ['img/blue.png','img/orange.png'],
+		 prompt:['Planet A','Planet B'],
+		 ship_stimulus: ['img/ship1.png','img/ship2.png'],
+		 data: {test_part:'test', correct_response:'f'}},
+		// {stimulus: ['img/orange.png','img/blue.png'],
+		//  prompt:['Planet A','Planet B'],
+		//  ship_stimulus: ['img/ship1.png','img/ship2.png'],
+		//  data: {test_part:'test', correct_response:'j'}},
+	];
+
+	//Fixation cross
+	// var fixation = {
+	// 	type: 'html-keyboard-response',
+	// 	stimulus: '<div style="font-size:60px;">+</div>',
+	// 	choices: jsPsych.NO_KEYS,
+	// 	trial_duration: function(){
+	// 		var out = Math.random()*1000+500
+	// 		return out
+	// 	},
+	// 	data: {test_part:'fixation'}
+	// }
+
+
+	//Define timeline variable
+	// var test = {
+	// 	type: 'planet-response',
+	// 	stimulus: jsPsych.timelineVariable('stimulus'),
+	// 	prompt: jsPsych.timelineVariable('prompt'),	
+	// 	ship_stimulus: jsPsych.timelineVariable('ship_stimulus'),
+	// 	data: jsPsych.timelineVariable('data'),
+	// 	on_finish: function(data){
+	// 		//data.correct = data.key_press == jsPsych.pluginAPI.convertKeyCharacterToKeyCode(data.correct_response);
+	// 	}
+
+	// }
+
+	// //New timeline with test stim
+	// var test_procedure = {
+	// 	timeline: [fixation, test],
+	// 	timeline_variables: test_stim,
+	// 	randomize_order: true,
+	// 	repetitions: 2,
+	// }
+	// timeline.push(test_procedure);
+
+	//Define timeline variable
+	var block_number = 0
+	var points = 0
+	var nBlocks_p1 = 2
+	var nBlocks_p2 = 3
+	//var trial_number = 0
+	var planet_noship = {
+		type: 'planet-response',
+		stimulus: ['img/blue.png','img/orange.png'],// jsPsych.timelineVariable('stimulus'),
+		prompt: ['Planet A','Planet B'], //jsPsych.timelineVariable('prompt'),	
+		ship_stimulus: ['img/ship1.png','img/ship2.png'],//jsPsych.timelineVariable('ship_stimulus'),
+		show_ship: false,
+		//rewards:[50,150],
+		data: {block_type:'planet_noship',block_number:block_number},//jsPsych.timelineVariable('data'),
+		on_start: function(trial){
+			trial.points = points;
+			trial.data.block_number = block_number;
+		},
+		on_finish: function(data){
+			points = data.points_total;
+		}		
+	}
+	var p1_var = {
+
+	}
+	//Loop over specified number of blocks
+	for (var i=0; i<nBlocks_p1; i++){
+		var block_noship = {
+			timeline: [planet_noship],
+			timeline_variables: p1_var,
+			repetitions: 2,
+		}
+		timeline.push(block_noship)
+		//value check p1
+		var value_p1 = {
+			type: 'html-keyboard-response',
+			stimulus: 'Value check first phase. Press any key to continue',
+		}
+		var infer_p1 = {
+			type: 'html-keyboard-response',
+			stimulus: 'Inference check first phase. Press any key to continue',
+		}
+		
+		timeline.push(value_p1);
+		timeline.push(infer_p1);
+		block_number++
+	}
+	// Push next block
+	// Define pre-block instructions
+	var instr_p2 = {
+		type: 'html-keyboard-response',
+		stimulus: 'Pre-block instructions with pirate warnings? go here.',
+	}
+	timeline.push(instr_p2);
+	//Copy a planet with ship version from noship
+	var planet_ship = Object.assign({},planet_noship); //Note that nested objects might not be copied and simply referenced? Be careful when trying to edit nested objects. Will probably need to clone them separately.
+	planet_ship.show_ship = true;
+	// var planet_ship = {
+	// 	type: 'planet-response',
+	// 	stimulus: ['img/blue.png','img/orange.png'],// jsPsych.timelineVariable('stimulus'),
+	// 	prompt: ['Planet A','Planet B'], //jsPsych.timelineVariable('prompt'),	
+	// 	ship_stimulus: ['img/ship1.png','img/ship2.png'],//jsPsych.timelineVariable('ship_stimulus'),
+	// 	show_ship: true,
+	// 	data: {block_type:'planet_ship'},//jsPsych.timelineVariable('data'),
+	// 	on_start: function(trial){
+	// 		trial.points = points;
+	// 		trial.data.block_number = block_number;
+	// 	},
+	// 	on_finish: function(data){
+	// 		points = data.points_total;
+	// 	}		
+	// }
+	//Loop over specified number of blocks
+	for (var i=0; i<nBlocks_p2; i++){
+		var block_ship = {
+			timeline: [planet_ship],
+			//timeline_variables: test_stim,
+			repetitions: 2,
+		}
+		timeline.push(block_ship)
+		//value check p1
+		var value_p2 = {
+			type: 'html-keyboard-response',
+			stimulus: 'Value check second phase. Press any key to continue',
+		}
+		var infer_p2 = {
+			type: 'html-keyboard-response',
+			stimulus: 'Inference check second phase. Press any key to continue',
+		}
+		
+		timeline.push(value_p2);
+		timeline.push(infer_p2);
+		block_number++
+	}
+
+	// Final page/debrief
+	var infer_p2 = {
+		type: 'html-keyboard-response',
+		stimulus: 'Final page. Press any key to continue',
+	}
+
+	//Start experiment
+	jsPsych.init({
+		timeline: timeline,
+		on_finish: function(){
+			jsPsych.data.displayData();
+		}
+	})
+
+  </script>
+</html>
