@@ -200,6 +200,7 @@
 	//Start experiment
 	jsPsych.init({
 		timeline: timeline,
+		preload_images: ['img/signal.png','img/ship1.png','img/ship2.png'],
 		on_finish: function(){
 			jsPsych.data.displayData();
 		}

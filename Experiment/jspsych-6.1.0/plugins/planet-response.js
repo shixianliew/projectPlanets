@@ -458,8 +458,8 @@ jsPsych.plugins["planet-response"] = (function() {
 				'id="ship-img-' + i + '" ' + 
 				'height="' + trial.ship_height +'" ' +
 				'width="' + trial.ship_width +'" ' +
-				'style="position:relative; top:0px" ' + 
-				'draggable="false" ' +
+				'style="position:relative; top:0px;" ' + 
+				'draggable="false" ' +				
 				'> ' +
 				'</img>'
 			
