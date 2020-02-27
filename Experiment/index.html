@@ -105,36 +105,66 @@
 	// }
 	// timeline.push(test_procedure);
 
-	//Define timeline variable
-	var block_number = 0
-	var points = 0
-	var nBlocks_p1 = 2
-	var nBlocks_p2 = 3
-	//var trial_number = 0
+	//Define some global variables
+	var block_number = 0;
+	var trial_number = 0;
+	var points = 0;
+	var continuousResp = true;
+	var nTrialspBlk = 5; //if continuousResp is true though, this doesn't matter
+	var nBlocks_p1 = 2;
+	var nBlocks_p2 = 3;
+
+	if (continuousResp){
+		var timeAtBlockStart = null;
+		var block_duration = 10 * 1000; //milliseconds
+		var nTrialspBlk = 100; //Use some large number to give some sense of indefinite number of trials
+	}
+
 	var planet_noship = {
 		type: 'planet-response',
 		stimulus: ['img/blue.png','img/orange.png'],// jsPsych.timelineVariable('stimulus'),
 		prompt: ['Planet A','Planet B'], //jsPsych.timelineVariable('prompt'),	
 		ship_stimulus: ['img/ship1.png','img/ship2.png'],//jsPsych.timelineVariable('ship_stimulus'),
 		show_ship: false,
-		data: {block_type:'planet_noship',block_number:block_number},//jsPsych.timelineVariable('data'),
+		data: {block_type:'planet_noship',block_number:block_number,trial_number:trial_number},//jsPsych.timelineVariable('data'),
 		on_start: function(trial){
 			trial.points = points;
 			trial.data.block_number = block_number;
+			trial.data.trial_number = trial_number;
+			if (continuousResp){
+				//At start of block, initialise relevant vars
+				if (trial_number==0){
+					timeAtBlockStart = performance.now()					
+				}
+			}
 		},
 		on_finish: function(data){
 			points = data.points_total;
+			trial_number = data.trial_number;
+			trial_number += 1;
+			//console.log('Trial ' + trial_number)
+			//Script for continuous response block
+			if (continuousResp){
+				var block_time_elapsed =  (performance.now() - timeAtBlockStart)
+				//console.log(block_time_elapsed/1000 + ' seconds')
+				if (block_time_elapsed > block_duration){
+					jsPsych.endCurrentTimeline();
+					//console.log('Block duration exceeded, moving on to next block.')
+					trial_number = 0;
+				}				
+			} else {
+				if (trial_number>=nTrialspBlk){
+					trial_number = 0
+				}
+			}
+				
 		}		
-	}
-	var p1_var = {
-
 	}
 	//Loop over specified number of blocks
 	for (var i=0; i<nBlocks_p1; i++){
 		var block_noship = {
 			timeline: [planet_noship],
-			timeline_variables: p1_var,
-			repetitions: 2,
+			repetitions: nTrialspBlk,
 		}
 		timeline.push(block_noship)
 		//value check p1
@@ -164,13 +194,14 @@
 	//Copy a planet with ship version from noship
 	var planet_ship = Object.assign({},planet_noship); //Note that nested objects might not be copied and simply referenced? Be careful when trying to edit nested objects. Will probably need to clone them separately.
 	planet_ship.show_ship = true;
+	planet_ship.data.block_type = 'planet_ship';
 	planet_ship.shield_charging_time = 2000;
 	planet_ship.ship_attack_time = 6000;
 	for (var i=0; i<nBlocks_p2; i++){
 		var block_ship = {
 			timeline: [planet_ship],
 			//timeline_variables: test_stim,
-			repetitions: 2,
+			repetitions: nTrialspBlk,
 		}
 		timeline.push(block_ship)
 		//value check p1
@@ -201,6 +232,7 @@
 	jsPsych.init({
 		timeline: timeline,
 		preload_images: ['img/signal.png','img/ship1.png','img/ship2.png'],
+		
 		on_finish: function(){
 			jsPsych.data.displayData();
 		}

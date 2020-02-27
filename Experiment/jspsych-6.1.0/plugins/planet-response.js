@@ -561,6 +561,7 @@ jsPsych.plugins["planet-response"] = (function() {
 					"points_total": trial.points,
 					"block_type": trial.data.block_type,
 					"block_number": trial.data.block_number,
+					"trial_number": trial.data.trial_number
 				};
 				
 				// clear the display
