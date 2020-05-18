@@ -224,7 +224,7 @@ jsPsych.plugins["planet-response"] = (function() {
 		probability_shield: {
 			type: jsPsych.plugins.parameterType.FLOAT,
 			pretty_name: 'Probability of shield',
-			default: .995,
+			default: .5,
 			description: 'Probability of shield availability after charging.'
 		},
 		cursor: {
