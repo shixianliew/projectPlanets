@@ -9,7 +9,9 @@
 	<script src="jspsych-6.1.0/plugins/planet-response.js"></script>
 	
   </head>
-  <body>Heya</body>
+  <body>
+	<!--<div id='mainDisp'></div>-->
+  </body>
   <script>
 
 	//Initialise timeline
@@ -31,79 +33,6 @@
 	}
 	timeline.push(instr_p1);
 
-	//Define a welcome trial
-	// var welcome = {
-	// 	type: 'html-keyboard-response',
-	// 	stimulus: 'Welcome to SINGAPORE. Now press any key to proceed can.'
-	// }
-	// //Push the trial into the timeline
-	// timeline.push(welcome);
-
-	// //Instructions trial
-	// var instructions = {
-	// 	type: 'html-keyboard-response',
-	// 	stimulus: "<p>In this experiment, a circle will appear in the center " +
-	// 		"of the screen.</p><p>If the circle is <strong>blue</strong>, " +
-	// 		"press the letter F on the keyboard as fast as you can.</p>" +
-	// 		"<p>If the circle is <strong>orange</strong>, press the letter J " +
-	// 		"as fast as you can.</p>" +
-	// 		"<div style='width: 700px;'>"+
-	// 		"<div style='float: left;'><img src='img/blue.png'></img>" +
-	// 		"<p class='small'><strong>Press the F key</strong></p></div>" +
-	// 		"<div class='float: right;'><img src='img/orange.png'></img>" +
-	// 		"<p class='small'><strong>Press the J key</strong></p></div>" +
-	// 		"</div>"+
-	// 		"<p>Press any key to begin.</p>"
-	// };
-	// //Push the trial into the timeline
-	// timeline.push(instructions);
-
-	//Experimental trials
-	var test_stim = [
-		{stimulus: ['img/blue.png','img/orange.png'],
-		 prompt:['Planet A','Planet B'],
-		 ship_stimulus: ['img/ship1.png','img/ship2.png'],
-		 data: {test_part:'test', correct_response:'f'}},
-		// {stimulus: ['img/orange.png','img/blue.png'],
-		//  prompt:['Planet A','Planet B'],
-		//  ship_stimulus: ['img/ship1.png','img/ship2.png'],
-		//  data: {test_part:'test', correct_response:'j'}},
-	];
-
-	//Fixation cross
-	// var fixation = {
-	// 	type: 'html-keyboard-response',
-	// 	stimulus: '<div style="font-size:60px;">+</div>',
-	// 	choices: jsPsych.NO_KEYS,
-	// 	trial_duration: function(){
-	// 		var out = Math.random()*1000+500
-	// 		return out
-	// 	},
-	// 	data: {test_part:'fixation'}
-	// }
-
-
-	//Define timeline variable
-	// var test = {
-	// 	type: 'planet-response',
-	// 	stimulus: jsPsych.timelineVariable('stimulus'),
-	// 	prompt: jsPsych.timelineVariable('prompt'),	
-	// 	ship_stimulus: jsPsych.timelineVariable('ship_stimulus'),
-	// 	data: jsPsych.timelineVariable('data'),
-	// 	on_finish: function(data){
-	// 		//data.correct = data.key_press == jsPsych.pluginAPI.convertKeyCharacterToKeyCode(data.correct_response);
-	// 	}
-
-	// }
-
-	// //New timeline with test stim
-	// var test_procedure = {
-	// 	timeline: [fixation, test],
-	// 	timeline_variables: test_stim,
-	// 	randomize_order: true,
-	// 	repetitions: 2,
-	// }
-	// timeline.push(test_procedure);
 
 	//Define some global variables
 	var block_number = 0;
@@ -117,8 +46,8 @@
 
 	if (continuousResp){
 		var timeAtBlockStart = null;
-		var block_duration = 10 * 1000; //milliseconds
-		var nTrialspBlk = 100; //Use some large number to give some sense of indefinite number of trials
+		//var block_duration = 10 * 1000; //milliseconds
+		var nTrialspBlk = 1; //Use some large number to give some sense of indefinite number of trials
 	}
 
 	var planet_noship = {
@@ -127,8 +56,13 @@
 		stimulus_mouseover: ['img/blueSelect.png','img/orangeSelect.png'],		
 		prompt: ['Planet A','Planet B'], //jsPsych.timelineVariable('prompt'),
 		ship_stimulus: ['img/ship1.png','img/ship2.png'],//jsPsych.timelineVariable('ship_stimulus'),
-		show_ship: false,
-		data: {block_type:'planet_noship',block_number:block_number,trial_number:trial_number},//jsPsych.timelineVariable('data'),
+		show_ship: true,
+		block_duration: 10 * 1000, //in milliseconds
+		continuousResp: continuousResp,
+		data: {block_type:'planet_noship',
+			   block_number:block_number,
+			   trial_number:trial_number,
+			   },
 		on_start: function(trial){
 			trial.points = points;
 			trial.data.block_number = block_number;
@@ -144,22 +78,36 @@
 		on_finish: function(data){
 			points = data.points_total;
 			trial_number = data.trial_number;
-			trial_number += 1;
+			trial_number++;
 			//console.log('Trial ' + trial_number)
 			//Script for continuous response block
 			if (continuousResp){
-				var block_time_elapsed =  (performance.now() - timeAtBlockStart)
-				//console.log(block_time_elapsed/1000 + ' seconds')
-				if (block_time_elapsed > block_duration){
-					jsPsych.endCurrentTimeline();
-					console.log('Block duration (' + block_time_elapsed + ' ms) exceeded max time of ' + block_duration + ' ms , moving on to next block.')
-					trial_number = 0;
-					reset_block_timer = true;
-				}				
+				jsPsych.endCurrentTimeline();
+				//console.log('Block duration (' + block_time_elapsed + ' ms) exceeded max time of ' + block_duration + ' ms , moving on to next block.')
+				//trial_number = 0;
+				reset_block_timer = true;
+				block_number = data.block_number;			
+				block_number++
+				console.log('Block ' + block_number)
+
+				// var block_time_elapsed =  (performance.now() - timeAtBlockStart)				
+				// //console.log(block_time_elapsed/1000 + ' seconds')
+				// if (block_time_elapsed > block_duration){
+				// 	jsPsych.endCurrentTimeline();
+				// 	//console.log('Block duration (' + block_time_elapsed + ' ms) exceeded max time of ' + block_duration + ' ms , moving on to next block.')
+				// 	//trial_number = 0;
+				// 	reset_block_timer = true;
+				// 	block_number = data.block_number;			
+				// 	block_number++
+				// 	console.log('Block ' + block_number)
+				//x}				
 			} else {
 				if (trial_number>=nTrialspBlk){
 					trial_number = 0
 					reset_block_timer = true;
+					block_number = data.block_number;			
+					block_number++
+					console.log('Block ' + block_number)
 				}
 			}
 				
@@ -186,7 +134,6 @@
 		
 		timeline.push(value_p1);
 		timeline.push(infer_p1);
-		block_number++
 	}
 	// Push next block
 	// Define pre-block instructions
@@ -224,7 +171,7 @@
 		
 		timeline.push(value_p2);
 		timeline.push(infer_p2);
-		block_number++
+		//block_number++
 	}
 
 	// Final page/debrief
@@ -242,7 +189,8 @@
 		
 		on_finish: function(){
 			jsPsych.data.displayData();
-		}
+		},
+		//display_element: 'mainDisp',
 	})
 
   </script>

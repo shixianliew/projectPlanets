@@ -103,18 +103,38 @@ jsPsych.plugins["planet-response"] = (function() {
       //   default: null,
       //   description: 'How long to hide the stimulus.'
       // },
-      trial_duration: {
-        type: jsPsych.plugins.parameterType.INT,
-        pretty_name: 'Trial duration',
-        default: null,
-        description: 'How long to show the trial.'
-      },
-      end_trial_wait: {
-        type: jsPsych.plugins.parameterType.INT,
-        pretty_name: 'End Trial Wait Time',
-        default: 4000,
-        description: 'How long before the trial ends after some final action.'
-      },
+		trial_duration: {
+			type: jsPsych.plugins.parameterType.INT,
+			pretty_name: 'Trial duration',
+			default: null,
+			description: 'How long to show the trial.'
+		},
+		continuousResp: {
+			type: jsPsych.plugins.parameterType.BOOL,
+			pretty_name: 'Continuous trial/block structure',
+			default: true,
+			description: 'Does this trial/block have a continuous response structure?'
+
+		},
+		block_duration: {
+			type: jsPsych.plugins.parameterType.INT,
+			pretty_name: 'Block duration',
+			array: true,
+			default: 10*1000,
+			description: 'Duration of continuous block'
+		},
+		reset_planet_wait: {
+			type: jsPsych.plugins.parameterType.INT,
+			pretty_name: 'Planet reset wait time',
+			default: 2000,
+			description: 'How long before reset of planet choice.'
+		},		
+		end_trial_wait: {
+			type: jsPsych.plugins.parameterType.INT,
+			pretty_name: 'End Trial Wait Time',
+			default: 1000,
+			description: 'How long before the trial ends after some final action.'
+		},
       // margin_vertical: {
       //   type: jsPsych.plugins.parameterType.STRING,
       //   pretty_name: 'Margin vertical',
@@ -137,7 +157,7 @@ jsPsych.plugins["planet-response"] = (function() {
 			type: jsPsych.plugins.parameterType.INT,
 			pretty_name: 'Signal duration range',
 			array: true,
-			default: [2000,4000],
+			default: [1000,2000],
 			description: 'Range of duration of signal image above chosen planet, in ms.'
 		},
 		signal_height: {
@@ -149,13 +169,13 @@ jsPsych.plugins["planet-response"] = (function() {
 		signal_width: {
 			type: jsPsych.plugins.parameterType.INT,
 			pretty_name: 'Signal duration',
-			default: 100,
+			default: 80,
 			description: 'Width of signal image.'
 		},
 		probability_win: {
 			type: jsPsych.plugins.parameterType.FLOAT,
 			pretty_name: 'Probability of winning',
-			default: [.5,.5],
+			default: [1.,0.5],
 			array:  true,
 			description: 'Probability of winning for each planet'
 		},
@@ -194,7 +214,7 @@ jsPsych.plugins["planet-response"] = (function() {
 		show_ship_delay: {
 			type: jsPsych.plugins.parameterType.INT,
 			pretty_name: 'Show ship delay',			
-			default: 3000,
+			default: 1000,
 			description: 'Duration between presentation of planet reward and appearance of ship.'
 		},
 		ship_attack_time: {
@@ -249,15 +269,16 @@ jsPsych.plugins["planet-response"] = (function() {
 			for (var i = 0; i < trial.stimulus.length; i ++){
 				// Set up space for score, signal, and planet
 				html += '<div id="planet-div-' + i + '" style="display:inline-block;"> ';
-				html += '<div class="clickid" id="planet-score-box-' + i + '" style="display:block; height:100px; width:100px"></div> ';
-				html += '<div class="clickid" id="planet-signal-box-' + i + '" style="display:block; height:100px; width:100px"></div> ';
+				html += '<div class="clickid" id="planet-score-box-' + i +
+					'"></div> ';
 				//Write img tag
 				html += '<img class="clickid" src="'+trial.stimulus[i] + '" ' + 
 					'id="planet-' + i + '" ' +
 					'moi="' + trial.stimulus_mouseover[i] + '" ' + //mouseover img
 					'dei="' + trial.stimulus[i] + '" ' + //default img
+					'allowclick="1" ' +  //allow clicks?
 					'style="' ;
-				html += 'display: inline-block;';
+				html += 'display: block;';
 				if(trial.stimulus_height !== null){
 					html += 'height:'+trial.stimulus_height+'px; '
 					if(trial.stimulus_width == null && trial.maintain_aspect_ratio){
@@ -278,15 +299,18 @@ jsPsych.plugins["planet-response"] = (function() {
 				
 				//show prompt if there is one -- this is really just the planet names below the planet
 				if (trial.prompt !== null) {
-					html += '<div class="clickid" id="planet-prompt-' + i + '">'
+					html += '<div class="clickid" id="planet-prompt-' + i + '" style="font-size:25px">'
 					html += trial.prompt[i];
 					html += '</div>'
 				}
+				//Add signal box
+				html += '<div class="clickid" id="planet-signal-box-' + i + '" style="display:block; height:100px; width:100px"></div> ';
 				html +='</div>';
 				//Add ship div in between planets
 				if (i+1 < trial.stimulus.length){
 					html += '<div id="ship-div" style="display:inline-block; ' +
 						'vertical-align: top; ' +
+						'visibility:visible; ' + 
 						'width:' + trial.ship_space + 'px;">' +
 						'<div class="clickid" id="total-score-box" style="height:50px;"></div>' + 
 						//'<div id="ship-score-box" style="height:50px;"></div>' +
@@ -309,8 +333,12 @@ jsPsych.plugins["planet-response"] = (function() {
 			}
 		}
 		//Update status with some message and in some colour
-		function updateStatus(msg,color){
-			var statusDiv = display_element.querySelector('#ship-status-text')
+		function updateStatus(choice,msg,color){
+			if(choice=='ship'){
+				var statusDiv = display_element.querySelector('#ship-status-text')
+			} else {
+				var statusDiv = display_element.querySelector('#planet-score-box-'+choice)
+			}
 			statusDiv.innerHTML = msg
 			statusDiv.style.color = color
 		}
@@ -318,23 +346,35 @@ jsPsych.plugins["planet-response"] = (function() {
 		display_element.innerHTML = html;
 		
 		updateScore(trial.points)
+
+		//Initialise middle divs
+		display_element.querySelector('#ship-img-box').innerHTML = '<div id="ship-img-div" ' + 
+			'style="position:relative; top:0px; border: 0px; ' +
+			'height: ' + trial.ship_height  + 'px ;' +
+			'width: ' + trial.ship_width + 'px;" ' +
+			'draggable="false" ' +				
+			'> ' +
+			'</div>' + 
+			'<div class="ship" id="ship-attack-text" style="height:80px;width:300px;line-height:80px"></div>'+
+			'<div class="ship" id="ship-status-text" style="height:10px;width:300px;"></div>';
+
 		
 		// start timing
 		var start_time = performance.now();
 
 		// store response
 		var response = {
-			rt: null,
-			option: null,
+			rt_planet: [],			
+			option: [],
 			shield_activated: null,
-			gain: 0,
-			loss: 0,
+			profitloss: [],
+			time_profitloss: [],
 		};
 
 		//Define mouseclick vars
 		var clicks = {
 			idx: [],
-			rt: [],
+			timestamp: [],
 			loc: [],
 			element:[],
 		}
@@ -356,7 +396,7 @@ jsPsych.plugins["planet-response"] = (function() {
 		function log_click(cursor_loc){
 			//Save mouse coords into data structure, along time and with time
 			clicks.idx.push(clickcnt)
-			clicks.rt.push(performance.now())
+			clicks.timestamp.push(performance.now()-start_time)
 			clicks.loc.push(cursor_loc)
 			clickcnt ++
 			console.log(clicks)
@@ -366,10 +406,11 @@ jsPsych.plugins["planet-response"] = (function() {
 		function resetCursor(){
 			display_element.style.cursor = "url('" + trial.cursor[0] + "'),pointer"
 		}
+
 		// Go through each choice and implement conditional mouseclick events, also mouseover
 		for (var i = 0; i < trial.stimulus.length; i++) {
 			var element = display_element.querySelector('#planet-' + i)
-			var conditionStr = 'response.option==null'
+			var conditionStr = 'element.getAttribute("allowclick")=="1"'//'response.option==null'
 			var styleDef = ['opacity:1;'];
 			var styleChange = ['opacity:.5;'];
 			var result = after_response;
@@ -380,13 +421,33 @@ jsPsych.plugins["planet-response"] = (function() {
 			stimulus_mouseover = trial.stimulus_mouseover
 			element.addEventListener('mouseover', function(e){
 				var ct = e.currentTarget
+				var choice = ct.getAttribute('data-choice')
 				ct.src = ct.getAttribute('moi')
+				//Highlight planet names
+				var cp = document.getElementById('planet-prompt-'+choice) //current prompt
+				var currtext = cp.innerHTML
+				cp.innerHTML = '<font color="05BF00">' + currtext + '</font>'
+				
 			});
 			element.addEventListener('mouseout', function(e){
 				var ct = e.currentTarget
+				var choice = ct.getAttribute('data-choice')
 				ct.src = ct.getAttribute('dei')
+				//Reset planet name format
+				var cp = document.getElementById('planet-prompt-'+choice) //current prompt
+				cp.innerHTML = cp.innerHTML.replace(/<font.*">/,'')
+				cp.innerHTML = cp.innerHTML.replace('</font>','')				
 			});
 
+			//Also fix width of scorebox
+			var planetRect = element.getBoundingClientRect()
+			var elementbx = display_element.querySelector('#planet-score-box-' + i)
+			elementbx.style.display = 'block';
+			elementbx.style.fontSize = '25px';
+			elementbx.style.height = '50px';
+			elementbx.style.padding = '20px 0px';
+			elementbx.style.width = planetRect.width+'px';
+			
 		}
 		
 		// General function to add conditional mouseclicks to an element
@@ -394,8 +455,6 @@ jsPsych.plugins["planet-response"] = (function() {
 			// Also do one for mousedown events
 			element.addEventListener('mousedown', function(e){
 				var condition = eval(conditionStr)
-				console.log(condition)
-				console.log(response.shield_activated)
 				if (condition){
 					var ct = e.currentTarget
 					replaceStyle(element,styleChanges)
@@ -423,7 +482,7 @@ jsPsych.plugins["planet-response"] = (function() {
 			element.addEventListener(eventStr, function(e){
 				var condition = eval(conditionStr) //eval is necessary for the condition to be checked only when event is triggered
 				if (condition){
-					var ct = e.currentTarget;					//var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility		  
+					var ct = e.currentTarget;
 					result(ct);
 				}
 			});
@@ -454,76 +513,93 @@ jsPsych.plugins["planet-response"] = (function() {
 			}			
 
 		}
-		// // function to handle transition to/from mousedown	  
-		// function mousedown(element,styleChange){
-		// 	//Handle mousedown
-		// 	for (var i = 0; i<styleChange.length; i++){
-		// 		//Get current style
-		// 		var currStyle = element.getAttribute('style')
-		// 		//Add to style changes
-		// 		var newStyle = currStyle + styleChange
-		// 		element.setAttribute('style',newStyle);
-		// 		//element.src = stim;
-		// 	}
-		// }
-		// function mouseleave(element,styleChange){
-		// 	//Handle mouseleave?
-		// 	element.style.opacity = 1.0;
-		// }
+
+		//200520 1832 IMPLEMENT CONTINUOUS PLANET CLICKS AND CHOICES AND TRADES XIAN
+		// Also the green ring selection image -- make it independent of the actual choices?
 		
 		// function to handle responses by the subject
 		function after_response(element) {
-			var choice = element.getAttribute('data-choice') 
+			//Lock clicking
+			element.setAttribute('allowclick',0)
+			var choice = element.getAttribute('data-choice')
 			// measure rt
 			var end_time = performance.now();
 			var rt = end_time - start_time;
-			response.option = choice;
-			response.rt_planet = rt;
-
+			response.option.push(choice);
+			response.rt_planet.push(rt);
+			
 			
 			// after a valid response, the stimulus will have the CSS class 'responded'
 			// which can be used to provide visual feedback that a response was recorded
 			display_element.querySelector('#planets').className += ' responded';
 			//Show the signal, wait some time, then end the trial
-			var signal_time_diff = Math.abs(trial.signal_time_range[1] - trial.signal_time_range[0])
-			var signal_time = Math.random()*signal_time_diff + trial.signal_time_range[0]
-			console.log(signal_time)
-			proceed_gamble(choice,signal_time);
+			//console.log(signal_time)
+			proceed_gamble(choice);
 			
 		};
 		
 
 		// function to show the signal, run gamble, show outcome
-		function proceed_gamble(choice,time){
+		function proceed_gamble(choice){
 			//Get planet position
+			var signalPadding = 10
 			var planet = display_element.querySelector('#planet-' + choice)
 			var planetWidth = planet.getBoundingClientRect().width
 			var planetX = planet.getBoundingClientRect().x		  
-			var signalLeft = planetWidth/2 - trial.signal_width/2
-			
+			var signalLeft = planetWidth/2 - (trial.signal_width + signalPadding*2)/2
 			//Display signal image and status
-			document.querySelector('#planet-signal-box-'+choice).innerHTML = '<img src="img/signal.png"' +
-				'style="height: 100px; width: 100px; position: relative;' +
+			document.querySelector('#planet-signal-box-'+choice).innerHTML = '<img src="img/signal.png" ' +
+				'id="planet-signal-img-' + choice + '" ' + 
+				'style="display:block; position: relative;' +
+				'height: ' + (trial.signal_width-10) + 'px; ' + 
+				'width: ' + trial.signal_width + 'px; ' + 
 				'left:' + signalLeft + 'px;' +
+				'padding: ' + signalPadding + 'px;' +
+				'visibility: visible;' + 
 				'">'
 
-			//Initialise middle divs
-			display_element.querySelector('#ship-img-box').innerHTML = '<div id="ship-img-div" ' + 
-				'style="position:relative; top:0px; border: 0px; ' +
-				'height: ' + trial.ship_height  + 'px ;' +
-				'width: ' + trial.ship_width + 'px;" ' +
-				'draggable="false" ' +				
-				'> ' +
-				'</div>' + 
-				'<div id="ship-attack-text" style="height:80px;width:300px;line-height:80px"></div>'+
-				'<div id="ship-status-text" style="height:50px;width:300px;"></div>';
+			// Generate the duration the signal will be presented
+			var signal_time_diff = Math.abs(trial.signal_time_range[1] - trial.signal_time_range[0])
+			var signal_time = Math.random()*signal_time_diff + trial.signal_time_range[0]
 
-			var statusDiv = display_element.querySelector('#ship-status-text');
-			statusDiv.style.fontSize = '25px'
-			var statusmsg = 'Attempting trade with ' + trial.prompt[choice]
-			var statusclr = '#b4ba38' //some shade of yellow
-			updateStatus(statusmsg,statusclr )
-			logIDonMouseDown(statusDiv)
+			//Implement trade attempt message
+			var signal_step_time = 250;
+			var signal_int_id = setInterval(sigframe,signal_step_time);
+			var signal_count = 1;
+			var signal_count_max = 3;
+			var signal_attempt_str = 'Attempting trade'
+			var signalmsg = signal_attempt_str + colordots(signal_count_max,0,'black',signalclr)// '.'.
+			var signalclr = '#b4ba38' //some shade of yellow
+			var signal_max_time = signal_time+performance.now()
+			updateStatus(choice,signalmsg,signalclr )
+			function sigframe() {
+				var curr_time = performance.now()
+				if (curr_time > signal_max_time) {
+					clearInterval(signal_int_id);
+				} else {
+					var dots = colordots(signal_count_max,signal_count,'black',signalclr)// '.'.repeat(signal_count)
+					signal_count ++
+					if (signal_count>signal_count_max){
+						signal_count = 0
+					}
+					signalmsg = signal_attempt_str + dots
+					updateStatus(choice,signalmsg,signalclr )
+				}
+			}
+			//This is an example of spending a little too much effort into a trivial detail...
+			function colordots(totalct,colorct,baseclr,fontclr){
+				outStr = ''
+				for (var i=0; i<totalct; i++){
+					if (i<colorct){
+						var color = fontclr
+					} else {
+						var color = baseclr
+					}
+					outStr += '<font color="'+ color + ' ">.</font>'
+				}
+				return outStr
+			}
+
 			
 			//Disable selection of images
 			for (var i = 0; i < trial.stimulus.length; i++) {
@@ -535,64 +611,153 @@ jsPsych.plugins["planet-response"] = (function() {
 			gamble_success = Math.random() < trial.probability_win[choice] //Might want to set this as variable?
 			if (gamble_success){
 				//Add and display reward
-				response.gain = trial.rewards[choice]
+				response.profitloss.push(trial.rewards[choice])
+				response.time_profitloss.push(performance.now()-start_time)
 				displayScore = trial.rewards[choice]
 				scoreColor = 'green'
-				var statusmsg = 'Traded with ' + trial.prompt[choice] + ', gained ' + displayScore + ' points'
+				var statusmsg = 'Success! <br> <b>+' + displayScore + ' points </b>'
 				var statusclr = 'green' //some shade of green				
 				
 			} else {
 				//Display some fail state
-				response.gain = 0;
+				response.profitloss.push(0);
+				response.time_profitloss.push(performance.now()-start_time)
 				displayScore = 0;
-				scoreColor = 'red'
+				scoreColor = 'yellow'
 				var statusmsg = 'Trade attempt failed'
-				var statusclr = 'yellow' //some shade of green
-
+				var statusclr = 'yellow' 
 			}
-			trial.points += response.gain
+			
+			trial.points += response.profitloss.slice(-1)[0] //add last profit/loss to cumulative total
+
+			//Check time and disable planets if final_action was flagged previously
+			checkTimeExceed()
+
 			// Wait before showing outcome
 			setTimeout(function(){
-				//display_element.querySelector('#planet-score-box-'+choice).innerHTML = '<div id="scoreDiv">' + displayScore + '</div>'
-				//var scoreDiv = display_element.querySelector('#scoreDiv')
-				//scoreDiv.style.fontSize = "50px"
-				//scoreDiv.style.color = scoreColor
-				//var scoreDivWidth = scoreDiv.getBoundingClientRect().width
-				//scoreDiv.style.position = 'relative'
-				//scoreDiv.style.left = planetWidth/2 - scoreDivWidth/2 + 'px'
+				//Hide signal image
+				document.querySelector('#planet-signal-img-'+choice).style.visibility = 'hidden'
 				updateScore(trial.points)
-				updateStatus(statusmsg,statusclr)
+				updateStatus(choice,statusmsg,statusclr)
 				
-				//Proceed to next step (ship or end trial)
+				//Proceed to next step (ship or end trial)				
 				if (trial.show_ship){
 					setTimeout(function(){
-						show_ship(choice);
+						if (!shipVisible){
+							show_ship(choice);
+						}
 					},trial.show_ship_delay);
 							   
-				} else {
-					end_trial()
-					//setTimeout(end_trial,1000)
-				}
-			},time)		  
+				} 
+				//reset planets after short delay
+				setTimeout(function(){
+					reset_planet(planet,choice)
+				}, trial.reset_planet_wait)								
+			}, signal_time)		  
 			
 		}
-		
+
+		// //Function to check if ship is visible
+		// function shipVisible(){
+		// 	var shipImg = display_element.querySelector('#ship-img')
+		// 	var ship_visible = false
+		// 	console.log(shipImg)
+		// 	if(shipImg != null) {
+		// 		ship_visible = shipImg.style.visibility == 'visible'
+		// 	}
+		// 	return(ship_visible)
+		//}
+		//Check if block time is up, else reset planet choice
+		function reset_planet(planet,choice){
+			//Reset some display elements
+			if(!final_action){
+				planet.setAttribute('allowclick',1)
+			}
+			updateStatus(choice,'','')
+			if(!trial.show_ship || final_action){
+				if (check_end()){
+					end_trial()
+				}
+			}
+		}
+		var shipVisible = false
+		var final_action = false // flag this as true when time is more than block_duration
+		// function to check if time exceeded, and if so, disable choices
+		function checkTimeExceed(){
+			var checkTime = (performance.now() - start_time) >= trial.block_duration
+			if (checkTime){
+				final_action = true				
+			}
+			if(final_action){				
+				for(var i=0; i<trial.stimulus.length; i++){
+					var planetEl = display_element.querySelector('#planet-' + i)
+					planetEl.setAttribute('allowclick',0)															   
+				}
+			}
+
+		}
+		// function to check all end_trial conditions
+		function check_end(){
+			//Check that time is up			
+			var checkTime = (performance.now() - start_time) >= trial.block_duration			
+			//Check that no planet statuses are active
+			var check_count = 0
+			var checkStr = []
+			for (var i=0; i<trial.stimulus.length; i++){
+				var el = display_element.querySelector('#planet-score-box-' + i)
+				if(el.innerHTML != ''){
+					checkStr.push('Planet ' + i + ' ' + el.innerHTML)
+					check_count++
+				}
+			}			
+			if (check_count>0){
+				var checkPlanet = false
+				console.log(checkStr)
+			} else {
+				var checkPlanet = true
+			}
+			
+			var checkShip = true
+			if (trial.show_ship){
+				checkShip = false
+				if(!shipVisible){
+					checkShip = true
+				}
+			}
+			console.log('ct ' + checkTime + ' cp ' + checkPlanet + ' cs ' + checkShip + ' fa ' + final_action)
+
+			//Flag final action for next check
+			checkTimeExceed()
+			return (checkTime && checkPlanet && checkShip)
+		}
+
 		// function to show ship
 		function show_ship(choice) {
 			//Put stuff into the ship divs
 			var shipDiv = display_element.querySelector('#ship-img-div');
+			shipDiv.style.visibility = 'visible';
 			shipDiv.innerHTML = '<img src="' + trial.ship_stimulus[choice] +  '" ' +
-				'id="ship-img" ' + 
+				'id="ship-img" ' +
+				'class="ship"' + 
 				'height="' + trial.ship_height +'" ' +
 				'width="' + trial.ship_width +'" ' +
-				'style="position:relative; top:0px; border: 0px" ' + 
+				'style="position:relative; top:0px; border: 0px; visibility:visible;z-index:11;" ' + 
 				'draggable="false" ' +				
-				'> ' 
-			logIDonMouseDown(shipDiv)
+				'> '
+			shipVisible = true
+			var shipImg = display_element.querySelector('#ship-img');
+			logIDonMouseDown(shipImg)
+
+			var shipStatTxt = display_element.querySelector('#ship-status-text');
+			shipStatTxt.style.fontSize = '25px'
+			shipStatTxt.style.color = 'red'
+			shipStatTxt.style.visibility = 'visible'
+			logIDonMouseDown(shipStatTxt)
 			
 			var shipAtTxt = display_element.querySelector('#ship-attack-text');
 			shipAtTxt.style.fontSize = '25px'
 			shipAtTxt.style.color = 'red'
+			shipAtTxt.style.visibility = 'visible'
 			var attack_int_id = setInterval(attframe,1000)
 			var attack_countdown = trial.ship_attack_time/1000
 			shipAtTxt.innerHTML = 'Encounter imminent ' + attack_countdown + ' s' //Show first frame
@@ -607,9 +772,9 @@ jsPsych.plugins["planet-response"] = (function() {
 			logIDonMouseDown(shipAtTxt)
 			
 			var shieldBoxDiv = display_element.querySelector('#ship-shield-box');
-			shieldBoxDiv.innerHTML = '<div id = "ship-shield-text"></div>' +
-				'<div id = "ship-shield-button"></div>' +
-				'<div id = "ship-shield-charger"></div>';
+			shieldBoxDiv.innerHTML = '<div class="ship" id="ship-shield-text"></div>' +
+				'<div class="ship" id="ship-shield-button"></div>' +
+				'<div class="ship" id="ship-shield-charger"></div>';
 			//Style the text div
 			var shieldTxtDiv = display_element.querySelector('#ship-shield-text');
 			shieldTxtDiv.innerHTML = 'CHARGING SHIELD';
@@ -651,7 +816,6 @@ jsPsych.plugins["planet-response"] = (function() {
 			shieldButton.style.zIndex = '1';
 			
 
-
 			//Set shield charging timer and animation
 			setTimeout(function(){
 				proceed_shield();
@@ -674,7 +838,9 @@ jsPsych.plugins["planet-response"] = (function() {
 			}
 
 			//Start timer for ship to attack and timeout
-			setTimeout(ship_attack,trial.ship_attack_time)
+			setTimeout(function(){
+				ship_attack(choice)
+			},trial.ship_attack_time)
 		}
 		
 		// function to update state of shield
@@ -725,24 +891,23 @@ jsPsych.plugins["planet-response"] = (function() {
 			shieldButton.style.backgroundColor = '#196d17'
 		}
 		// function for ship to attack
-		function ship_attack(){
+		function ship_attack(choice){
 			//Disable button if no response
 			if (response.shield_activated==null){
 				response.shield_activated = false
 			}
 			var might_lose = Math.round(trial.points * trial.ship_attack_damage)
-			if (response.option==1 || trial.ship_attack_damage==0){
+			if (choice==1 || trial.ship_attack_damage==0){
 					var statusmsg = 'Ship passed by without incident'
 					var statusclr = 'green' //some shade of green								
-			} else if (!response.shield_activated && response.option==0){
-				// 20% of points
-				response.loss = might_lose
-				trial.points -= response.loss
+			} else if (choice==0 && !response.shield_activated){
+				// 20% of points				
+				trial.points -= might_lose//response.loss
 				// Display and add to points
 
-				var shipDiv = display_element.querySelector('#ship-status-text')
-				shipDiv.innerHTML = '<div class="clickid" id="ship-scoreDiv"> -' + response.loss + '</div>'
-				var shipWidth = shipDiv.getBoundingClientRect().width
+				// var shipDiv = display_element.querySelector('#ship-status-text')
+				// shipDiv.innerHTML = '<div class="clickid" id="ship-scoreDiv"> -' + might_lose + '</div>'
+				// var shipWidth = shipDiv.getBoundingClientRect().width
 
 				// var scoreDiv = display_element.querySelector('#ship-scoreDiv')
 				// scoreDiv.style.fontSize = "50px"
@@ -758,13 +923,13 @@ jsPsych.plugins["planet-response"] = (function() {
 				updateScore(trial.points)
 
 				//Update status
-				var statusmsg = 'Ship attacked: lost ' + response.loss + ' points'
+				var statusmsg = 'Ship attacked: <br><b>-' + might_lose + ' points</b>'
 				var statusclr = 'red' //some shade of green
 			} else if (response.shield_activated) {
 				var statusmsg = 'Shield successfully deflected attack'
 				var statusclr = 'yellow'
 			}
-			updateStatus(statusmsg,statusclr)
+			updateStatus('ship',statusmsg,statusclr)
 			//Visually disable button
 			var shieldDiv = display_element.querySelector('#ship-shield-text')
 			//shieldDiv.style.opacity = .5
@@ -773,12 +938,41 @@ jsPsych.plugins["planet-response"] = (function() {
 				shieldButton.style.opacity = .5
 				shieldButton.style.backgroundColor = ''
 				shieldButton.style.color = 'green'				
-			} 
+			}
+			//Reset ship
+			setTimeout(function(){				
+				reset_ship()
+			},1000)
 			//End trial
-			end_trial()
+			//end_trial()
 		}
 
+		//Function to reset ship div
+		function reset_ship(){
+			//Hide ship div
+			var shipEls = display_element.getElementsByClassName('ship')
+			for (var i = 0; i < shipEls.length; i++){
+				shipEls[i].style.visibility = 'hidden'
+			}
+			shipVisible = false
+			//Clear ship status text
+			var shipStatTxt = display_element.querySelector('#ship-status-text');
+			shipStatTxt.innerHTML = ''
+			//Reset shield
+			var shieldButton = display_element.querySelector('#ship-shield-button')
+			shieldButton.style.opacity = 1.
+			shieldButton.style.backgroundColor = ''
+			shieldButton.style.color = 'green'				
+			shieldButton.innerHTML = ''
+			response.shield_activated = null
 
+			//Check if can end block
+			if (check_end()){
+				end_trial()
+			} 
+
+		}
+		
 		//After everything has loaded, loop through all elements and add an eventlistener to fetch id on mousedown
 		var allDOM = display_element.getElementsByClassName("clickid");
 		for (var i=0, max=allDOM.length; i < max; i++) {
@@ -789,7 +983,12 @@ jsPsych.plugins["planet-response"] = (function() {
 		function logIDonMouseDown(element){
 			element.addEventListener('mousedown', function(e){
 				console.log(e.currentTarget.id)
-				clicks.element[clickcnt] = e.currentTarget.id
+				//Only log element if not hidden
+				if(e.currentTarget.style.visibility=='hidden'){
+					clicks.element[clickcnt] = undefined
+				} else {
+					clicks.element[clickcnt] = e.currentTarget.id
+				}
 				//clicks.element.push(e.currentTarget.id)
 			});			
 		}
@@ -813,8 +1012,7 @@ jsPsych.plugins["planet-response"] = (function() {
 					"rt_planet": response.rt_planet,
 					"shield_activated": response.shield_activated,
 					"rt_shield": response.rt_shield,					
-					"points_gained": response.gain,
-					"points_lost": response.loss,
+					"points_gained": response.profitloss,
 					"points_total": trial.points,
 					"block_type": trial.data.block_type,
 					"block_number": trial.data.block_number,
@@ -828,7 +1026,7 @@ jsPsych.plugins["planet-response"] = (function() {
 				// move on to the next trial
 				console.log(trial_data)
 				jsPsych.finishTrial(trial_data);
-			},trial.end_trial_wait)
+			}, trial.end_trial_wait)
 		};
 		
 		
