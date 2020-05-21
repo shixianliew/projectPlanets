@@ -175,7 +175,7 @@ jsPsych.plugins["planet-response"] = (function() {
 		probability_win: {
 			type: jsPsych.plugins.parameterType.FLOAT,
 			pretty_name: 'Probability of winning',
-			default: [1.,0.5],
+			default: [.5,0.5],
 			array:  true,
 			description: 'Probability of winning for each planet'
 		},
@@ -419,25 +419,9 @@ jsPsych.plugins["planet-response"] = (function() {
 			//Handle mouseover
 			//have to make mouseover imgs global
 			stimulus_mouseover = trial.stimulus_mouseover
-			element.addEventListener('mouseover', function(e){
-				var ct = e.currentTarget
-				var choice = ct.getAttribute('data-choice')
-				ct.src = ct.getAttribute('moi')
-				//Highlight planet names
-				var cp = document.getElementById('planet-prompt-'+choice) //current prompt
-				var currtext = cp.innerHTML
-				cp.innerHTML = '<font color="05BF00">' + currtext + '</font>'
-				
-			});
-			element.addEventListener('mouseout', function(e){
-				var ct = e.currentTarget
-				var choice = ct.getAttribute('data-choice')
-				ct.src = ct.getAttribute('dei')
-				//Reset planet name format
-				var cp = document.getElementById('planet-prompt-'+choice) //current prompt
-				cp.innerHTML = cp.innerHTML.replace(/<font.*">/,'')
-				cp.innerHTML = cp.innerHTML.replace('</font>','')				
-			});
+			
+			element.addEventListener('mouseover', planet_mOver);
+			element.addEventListener('mouseout', planet_mOut);
 
 			//Also fix width of scorebox
 			var planetRect = element.getBoundingClientRect()
@@ -448,6 +432,26 @@ jsPsych.plugins["planet-response"] = (function() {
 			elementbx.style.padding = '20px 0px';
 			elementbx.style.width = planetRect.width+'px';
 			
+		}
+
+		// Implement planet mouseover and mouseout effects
+		function planet_mOver(e){
+				var ct = e.currentTarget
+				var choice = ct.getAttribute('data-choice')
+				ct.src = ct.getAttribute('moi')
+				//Highlight planet names
+				var cp = document.getElementById('planet-prompt-'+choice) //current prompt
+				var currtext = cp.innerHTML
+				cp.innerHTML = '<font color="05BF00">' + currtext + '</font>'
+		}
+		function planet_mOut(e){
+			var ct = e.currentTarget
+			var choice = ct.getAttribute('data-choice')
+			ct.src = ct.getAttribute('dei')
+			//Reset planet name format
+			var cp = document.getElementById('planet-prompt-'+choice) //current prompt
+			cp.innerHTML = cp.innerHTML.replace(/<font.*">/,'')
+			cp.innerHTML = cp.innerHTML.replace('</font>','')				
 		}
 		
 		// General function to add conditional mouseclicks to an element
@@ -691,7 +695,9 @@ jsPsych.plugins["planet-response"] = (function() {
 			if(final_action){				
 				for(var i=0; i<trial.stimulus.length; i++){
 					var planetEl = display_element.querySelector('#planet-' + i)
-					planetEl.setAttribute('allowclick',0)															   
+					planetEl.setAttribute('allowclick',0)
+					planetEl.removeEventListener('mouseover',planet_mOver)
+					//planetEl.removeEventListener('mouseout',planet_mOut)
 				}
 			}
 
