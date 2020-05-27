@@ -52,12 +52,12 @@
 
 	var planet_noship = {
 		type: 'planet-response',
-		stimulus: ['img/blue.png','img/orange.png'],// jsPsych.timelineVariable('stimulus'),
+		stimulus: ['img/bluep.png','img/orangep.png'],// jsPsych.timelineVariable('stimulus'),
 		stimulus_mouseover: ['img/blueSelect.png','img/orangeSelect.png'],		
 		prompt: ['Planet A','Planet B'], //jsPsych.timelineVariable('prompt'),
 		ship_stimulus: ['img/ship1.png','img/ship2.png'],//jsPsych.timelineVariable('ship_stimulus'),
-		show_ship: true,
-		block_duration: 100 * 1000, //in milliseconds
+		show_ship: false,
+		block_duration: 10 * 1000, //in milliseconds
 		continuousResp: continuousResp,
 		data: {block_type:'planet_noship',
 			   block_number:block_number,
@@ -146,6 +146,7 @@
 	//Copy a planet with ship version from noship
 	var planet_ship = Object.assign({},planet_noship); //Note that nested objects might not be copied and simply referenced? Be careful when trying to edit nested objects. Will probably need to clone them separately.
 	planet_ship.show_ship = true;
+	planet_ship.data = Object.assign({},planet_noship.data)
 	planet_ship.data.block_type = 'planet_ship';
 	//planet_ship.shield_charging_time = 2000;
 	//planet_ship.ship_attack_time = 6000;
@@ -184,7 +185,9 @@
 	//Start experiment
 	jsPsych.init({
 		timeline: timeline,
-		preload_images: ['img/signal.png','img/ship1.png','img/ship2.png','img/blue.png','img/blueSelect.png','img/orange.png','img/orangeSelect.png',
+		preload_images: ['img/signal1.png','img/signal2.png','img/signal3.png','img/signal4.png',
+						 'img/ship1.png','img/ship2.png',
+						 'img/bluep.png','img/orangep.png',
 						 'img/cursor.png','img/cursordark.png'],
 		
 		on_finish: function(){

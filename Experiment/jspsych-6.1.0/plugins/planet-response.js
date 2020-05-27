@@ -157,7 +157,7 @@ jsPsych.plugins["planet-response"] = (function() {
 			type: jsPsych.plugins.parameterType.INT,
 			pretty_name: 'Signal duration range',
 			array: true,
-			default: [1000,2000],
+			default: [2000,2000],
 			description: 'Range of duration of signal image above chosen planet, in ms.'
 		},
 		signal_height: {
@@ -372,20 +372,21 @@ jsPsych.plugins["planet-response"] = (function() {
 
 		// store response
 		var response = {
-			rt_planet: [],			
-			option: [],
-			shield_activated: null,
-			profitloss: [],
-			time_profitloss: [],
+			planets: {click_idx:[],select:[],time_select:[],outcome:[],time_outcome:[]},
+			ships: {type:[],time_appear:[],shield_available:[],shield_activated:[],rt_shield_activated:[],outcome:[],time_outcome:[]},
+			all_outcomes: {outcome:[],time_outcome:[],total: []},
+			//rt_planet: [],			
+			//option: [],
+			//shield_activated: null,			
+			//Define mouseclick vars
+			clicks: {
+				idx: [],
+				timestamp: [],
+				loc: [],
+				element:[],
+			}			
 		};
 
-		//Define mouseclick vars
-		var clicks = {
-			idx: [],
-			timestamp: [],
-			loc: [],
-			element:[],
-		}
 		var clickcnt = 0
 		// These functions to log mouseclicks throughout the experiment
 		document.addEventListener('mousedown', getPositions)
@@ -403,11 +404,11 @@ jsPsych.plugins["planet-response"] = (function() {
 
 		function log_click(cursor_loc){
 			//Save mouse coords into data structure, along time and with time
-			clicks.idx.push(clickcnt)
-			clicks.timestamp.push(performance.now()-start_time)
-			clicks.loc.push(cursor_loc)
+			response.clicks.idx.push(clickcnt)
+			response.clicks.timestamp.push(performance.now()-start_time)
+			response.clicks.loc.push(cursor_loc)
 			clickcnt ++
-			console.log(clicks)
+			console.log(response.clicks)
 			display_element.style.cursor = "url('" + trial.cursor[1] + "'),pointer" //"url('cursordark.png'),pointer"
 		}		
 
@@ -423,7 +424,7 @@ jsPsych.plugins["planet-response"] = (function() {
 			var styleChange = ['opacity:.5;'];
 			var result = after_response;
 			var clickOnMouseDown = true; //activate click immediately on mousedown			
-			cond_click(element,result,conditionStr,styleDef,styleChange,clickOnMouseDown)
+			cond_click(element,result,conditionStr,styleDef,styleChange,clickOnMouseDown)			
 			//Handle mouseover
 			//have to make mouseover imgs global
 			stimulus_mouseover = trial.stimulus_mouseover
@@ -464,7 +465,7 @@ jsPsych.plugins["planet-response"] = (function() {
 			//Highlight planet names
 			var cp = document.getElementById('planet-prompt-'+choice) //current prompt
 			var currtext = cp.innerHTML
-			cp.innerHTML = '<font color="05BF00">' + currtext + '</font>'
+			cp.innerHTML = '<font color="#05BF00">' + currtext + '</font>' //dis brite gre3n
 		}
 		function planet_mOut(e){
 			var ct = e.currentTarget
@@ -489,7 +490,7 @@ jsPsych.plugins["planet-response"] = (function() {
 				}
 			});
 			element.addEventListener('mouseleave', function(e){
-				var condition = eval(conditionStr)
+				var condition = true//eval(conditionStr)
 				if (condition){
 					var ct = e.currentTarget
 					replaceStyle(element,styleDef)
@@ -542,10 +543,7 @@ jsPsych.plugins["planet-response"] = (function() {
 
 		}
 
-		//200520 1832 IMPLEMENT CONTINUOUS PLANET CLICKS AND CHOICES AND TRADES XIAN
-		// Also the green ring selection image -- make it independent of the actual choices?
-		
-		// function to handle responses by the subject
+		// function to handle a valid planet-choice by the subject
 		function after_response(element) {
 			//Lock clicking
 			element.setAttribute('allowclick',0)
@@ -553,13 +551,22 @@ jsPsych.plugins["planet-response"] = (function() {
 			// measure rt
 			var end_time = performance.now();
 			var rt = end_time - start_time;
-			response.option.push(choice);
-			response.rt_planet.push(rt);
-			
+			var click_idx = response.clicks.idx.slice(-1)[0] //idx of this click is the last element in clicks
+			//Since response.clicks.idx is updated only after this script though, add 1 to the number
+			if(click_idx==null){
+				click_idx = 0
+			} else {
+				click_idx++
+			}
+			// Log response details
+			response.planets.select.push(choice);
+			response.planets.time_select.push(rt);
+			response.planets.click_idx.push(click_idx)
 			
 			// after a valid response, the stimulus will have the CSS class 'responded'
 			// which can be used to provide visual feedback that a response was recorded
-			display_element.querySelector('#planets').className += ' responded';
+			//display_element.querySelector('#planets').className += ' responded';
+
 			//Show the signal, wait some time, then end the trial
 			//console.log(signal_time)
 			proceed_gamble(choice);
@@ -576,7 +583,7 @@ jsPsych.plugins["planet-response"] = (function() {
 			var planetX = planet.getBoundingClientRect().x		  
 			var signalLeft = planetWidth/2 - (trial.signal_width + signalPadding*2)/2
 			//Display signal image and status
-			document.querySelector('#planet-signal-box-'+choice).innerHTML = '<img src="img/signal.png" ' +
+			document.querySelector('#planet-signal-box-'+choice).innerHTML = '<img src="img/signal1.png" ' +
 				'id="planet-signal-img-' + choice + '" ' + 
 				'style="display:block; position: relative;' +
 				'height: ' + (trial.signal_width-10) + 'px; ' + 
@@ -593,8 +600,8 @@ jsPsych.plugins["planet-response"] = (function() {
 			//Implement trade attempt message
 			var signal_step_time = 250;
 			var signal_int_id = setInterval(sigframe,signal_step_time);
-			var signal_dot_count = 1;
 			var signal_dot_count_max = 3;
+			var signal_dot_count = Math.ceil(Math.random() * signal_dot_count_max);
 			var signal_attempt_str = 'Attempting trade'
 			var signalmsg = signal_attempt_str + colordots(signal_dot_count_max,0,'black',signalclr)// '.'.
 			var signalclr = '#b4ba38' //some shade of yellow
@@ -602,6 +609,9 @@ jsPsych.plugins["planet-response"] = (function() {
 			//Also vars for signal img
 			var signal_img_count_max = 4;
 			var signal_img_count = Math.ceil(Math.random() * signal_img_count_max);
+			var signalImg = display_element.querySelector('#planet-signal-img-' + choice)
+			signalImg.src = 'img/signal' + signal_img_count + '.png'
+
 			updateStatus(choice,signalmsg,signalclr )
 			function sigframe() {
 				var curr_time = performance.now()
@@ -649,30 +659,30 @@ jsPsych.plugins["planet-response"] = (function() {
 			gamble_success = Math.random() < trial.probability_win[choice] //Might want to set this as variable?
 			if (gamble_success){
 				//Add and display reward
-				response.profitloss.push(trial.rewards[choice])
-				response.time_profitloss.push(performance.now()-start_time)
-				displayScore = trial.rewards[choice]
+				var displayScore = trial.rewards[choice]
 				scoreColor = 'green'
 				var statusmsg = 'Success! <br> <b>+' + displayScore + ' points </b>'
-				var statusclr = 'green' //some shade of green				
+				var statusclr = '#05BF00' //some shade of green				
 				
 			} else {
 				//Display some fail state
-				response.profitloss.push(0);
-				response.time_profitloss.push(performance.now()-start_time)
-				displayScore = 0;
+				var displayScore = 0;
 				scoreColor = 'yellow'
 				var statusmsg = 'Trade attempt failed'
 				var statusclr = 'yellow' 
 			}
 			
-			trial.points += response.profitloss.slice(-1)[0] //add last profit/loss to cumulative total
+			//trial.points += displayScore //response.profitloss.slice(-1)[0] //add last profit/loss to cumulative total
+			//Update running total
+			//response.all_outcomes.total.push(trial.points)
 
 			//Check time and disable planets if final_action was flagged previously
 			checkTimeExceed()
 
 			// Wait before showing outcome
 			setTimeout(function(){
+				//Compute total points
+				trial.points += displayScore //response.profitloss.slice(-1)[0] //add last profit/loss to cumulative total
 				//Hide signal image
 				document.querySelector('#planet-signal-img-'+choice).style.visibility = 'hidden'
 				updateScore(trial.points)
@@ -686,7 +696,20 @@ jsPsych.plugins["planet-response"] = (function() {
 						}
 					},trial.show_ship_delay);
 							   
-				} 
+				}
+				// Log response details
+				var time_outcome = performance.now()-start_time
+				response.planets.outcome.push(displayScore)
+				response.planets.time_outcome.push(time_outcome)
+				// Also update a single list of outcomes for easier tracking of each change in score
+				response.all_outcomes.outcome.push(displayScore)
+				response.all_outcomes.time_outcome.push(time_outcome)
+				// Finally, update running total
+				response.all_outcomes.total.push(trial.points)
+
+				//response.profitloss.push(displayScore)
+				//response.time_profitloss.push(performance.now()-start_time)
+
 				//reset planets after short delay
 				setTimeout(function(){
 					reset_planet(planet,choice)
@@ -720,6 +743,7 @@ jsPsych.plugins["planet-response"] = (function() {
 		}
 		var shipVisible = false
 		var final_action = false // flag this as true when time is more than block_duration
+		var shield_activated = null
 		// function to check if time exceeded, and if so, disable choices
 		function checkTimeExceed(){
 			var checkTime = (performance.now() - start_time) >= trial.block_duration
@@ -881,6 +905,10 @@ jsPsych.plugins["planet-response"] = (function() {
 			setTimeout(function(){
 				ship_attack(choice)
 			},trial.ship_attack_time)
+
+			//log ship appear details
+			response.ships.type.push(choice)
+			response.ships.time_appear.push(performance.now() - start_time)
 		}
 		
 		// function to update state of shield
@@ -890,16 +918,14 @@ jsPsych.plugins["planet-response"] = (function() {
 			var shieldButton = display_element.querySelector('#ship-shield-button');
 			// Run shield gamble
 			shield_success = Math.random() < trial.probability_shield
+			// Log shield state
+			response.ships.shield_available.push(shield_success)
+			//Update display
 			if (shield_success){
 				shieldTxtDiv.innerHTML = 'SHIELD AVAILABLE'
-				// shieldButton.style.borderRadius = "10px"
-				// shieldButton.style.border = "2px solid blue"
-				// shieldButton.draggable = false
 				shieldButton.innerHTML = 'ACTIVATE!'
-				//shieldDiv.innerHTML = '<div id="ship-shield-button" style="border-radius:10px; border: 2px solid blue;" draggable="false">' +
-				//	'ACTIVATE! </div>';
 				var shieldButton = display_element.querySelector('#ship-shield-button')
-				var conditionStr = 'response.shield_activated==null'
+				var conditionStr = 'shield_activated==null'
 				var styleDef = ['background-color: ;','color: green;'];
 				var styleChange = ['background-color: green;','color: black;'];
 				var result = activate_shields;
@@ -910,19 +936,15 @@ jsPsych.plugins["planet-response"] = (function() {
 				shieldTxtDiv.innerHTML = 'SHIELD UNAVAILABLE'
 				shieldButton.innerHTML = 'NO SHIELD'
 				shieldButton.style.opacity = '.5'
-				//shieldDiv.innerHTML = '<div id="ship-shield-button" style="border-radius:10px; border: 2px solid blue; opacity:.5;"> NO SHIELD </div>';
-
 			}
-			//var shieldButton = display_element.querySelector('#ship-shield-button')
-
 		}
 
 		function activate_shields(){
 			//Log data
 			var end_time = performance.now();
 			var rt = end_time - shield_start_time;
-			response.shield_activated = true;
-			response.rt_shield = rt;
+			shield_activated = true;
+			response.ships.rt_shield_activated.push(rt); //logging of activation state will be performed at time of ship attack
 
 			//Modify Shieldbutton text
 			shieldButton = display_element.querySelector('#ship-shield-button')
@@ -933,52 +955,55 @@ jsPsych.plugins["planet-response"] = (function() {
 		// function for ship to attack
 		function ship_attack(choice){
 			//Disable button if no response
-			if (response.shield_activated==null){
-				response.shield_activated = false
+			if (shield_activated==null){
+				shield_activated = false
+				response.ships.rt_shield_activated.push(null); 
 			}
-			var might_lose = Math.round(trial.points * trial.ship_attack_damage)
+
+			//Log shield response
+			response.ships.shield_activated.push(shield_activated)
+			
+			var pointslost = 0//Math.round(trial.points * trial.ship_attack_damage)
 			if (choice==1 || trial.ship_attack_damage==0){
 					var statusmsg = 'Ship passed by without incident'
-					var statusclr = 'green' //some shade of green								
-			} else if (choice==0 && !response.shield_activated){
-				// 20% of points				
-				trial.points -= might_lose//response.loss
-				// Display and add to points
-
-				// var shipDiv = display_element.querySelector('#ship-status-text')
-				// shipDiv.innerHTML = '<div class="clickid" id="ship-scoreDiv"> -' + might_lose + '</div>'
-				// var shipWidth = shipDiv.getBoundingClientRect().width
-
-				// var scoreDiv = display_element.querySelector('#ship-scoreDiv')
-				// scoreDiv.style.fontSize = "50px"
-				// scoreDiv.style.color = 'red'
-				// logIDonMouseDown(scoreDiv)
-				
-				// var scoreDivWidth = scoreDiv.getBoundingClientRect().width
-				// scoreDiv.style.position = 'relative'				
-				// scoreDiv.style.left = shipWidth/2 - scoreDivWidth/2 + 'px'
-
+					var statusclr = '#b4ba38' //some shade of green								
+			} else if (choice==0 && ! shield_activated){
+				// 20% of points
+				pointslost = Math.round(trial.points * trial.ship_attack_damage)
+				trial.points -= pointslost
 				
 				//Update score
 				updateScore(trial.points)
 
 				//Update status
-				var statusmsg = 'Ship attacked: <br><b>-' + might_lose + ' points</b>'
-				var statusclr = 'red' //some shade of green
-			} else if (response.shield_activated) {
+				var statusmsg = 'Ship attacked: <br><b>-' + pointslost + ' points</b>'
+				var statusclr = 'red' //some shade of red
+			} else if (shield_activated) {
 				var statusmsg = 'Shield successfully deflected attack'
-				var statusclr = 'yellow'
+				var statusclr = '#05BF00'
 			}
 			updateStatus('ship',statusmsg,statusclr)
+
+			//log details
+			var time_outcome = performance.now()-start_time
+			response.ships.outcome.push(-pointslost)			
+			response.ships.time_outcome.push(time_outcome)
+			// Also update a single list of outcomes for easier tracking of each change in score
+			response.all_outcomes.outcome.push(-pointslost)
+			response.all_outcomes.time_outcome.push(time_outcome)
+			// Finally, update total
+			response.all_outcomes.total.push(trial.points)
+			
 			//Visually disable button
 			var shieldDiv = display_element.querySelector('#ship-shield-text')
 			//shieldDiv.style.opacity = .5
 			var shieldButton = display_element.querySelector('#ship-shield-button')
-			if (!response.shield_activated){
+			if (!shield_activated){
 				shieldButton.style.opacity = .5
 				shieldButton.style.backgroundColor = ''
 				shieldButton.style.color = 'green'				
 			}
+
 			//Reset ship
 			setTimeout(function(){				
 				reset_ship()
@@ -1004,8 +1029,8 @@ jsPsych.plugins["planet-response"] = (function() {
 			shieldButton.style.backgroundColor = ''
 			shieldButton.style.color = 'green'				
 			shieldButton.innerHTML = ''
-			response.shield_activated = null
-
+			shield_activated = null
+			
 			//Check if can end block
 			if (check_end()){
 				end_trial()
@@ -1025,9 +1050,9 @@ jsPsych.plugins["planet-response"] = (function() {
 				console.log(e.currentTarget.id)
 				//Only log element if not hidden
 				if(e.currentTarget.style.visibility=='hidden'){
-					clicks.element[clickcnt] = undefined
+					response.clicks.element[clickcnt] = undefined
 				} else {
-					clicks.element[clickcnt] = e.currentTarget.id
+					response.clicks.element[clickcnt] = e.currentTarget.id
 				}
 				//clicks.element.push(e.currentTarget.id)
 			});			
@@ -1056,19 +1081,36 @@ jsPsych.plugins["planet-response"] = (function() {
 				display_element.style.cursor = 'default'
 				display_wrapper.style.backgroundColor = '#FFFFFF'
 				display_element.style.color = "black"
+				//Get viewport size
+				var win = window,
+					doc = document,
+					docElem = doc.documentElement,
+					body = doc.getElementsByTagName('body')[0],
+					vpWidth = win.innerWidth || docElem.clientWidth || body.clientWidth,
+					vpHeight = win.innerHeight|| docElem.clientHeight|| body.clientHeight;
+				//Get location of main div
+				var dpRect = display_element.getBoundingClientRect(),
+					dpx = dpRect.left,
+					dpy = dpRect.top
+				
 				// gather the data to store for the trial
 				var trial_data = {
 					"stimulus": trial.stimulus,
-					"planet_selected": response.option,
-					"rt_planet": response.rt_planet,
-					"shield_activated": response.shield_activated,
-					"rt_shield": response.rt_shield,					
-					"points_gained": response.profitloss,
+					"planets": response.planets,
+					"ships": response.ships,
+					"all_outcomes": response.all_outcomes,
+					"all_clicks": response.clicks,
+					//"planet_selected": response.option,
+					//"rt_planet": response.rt_planet,
+					//"shield_activated": shield_activated,
+					//"rt_shield": response.rt_shield,					
+					//"points_gained": response.profitloss,
 					"points_total": trial.points,
 					"block_type": trial.data.block_type,
 					"block_number": trial.data.block_number,
 					"trial_number": trial.data.trial_number,
-					"trial_clicks": clicks
+					"viewport_size": [vpWidth,vpHeight],
+					"display_loc": [dpx,dpy]
 				};
 				
 				// clear the display
