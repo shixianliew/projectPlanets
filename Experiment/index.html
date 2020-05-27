@@ -10,7 +10,7 @@
 	
   </head>
   <body>
-	<!--<div id='mainDisp'></div>-->
+
   </body>
   <script>
 
@@ -39,72 +39,44 @@
 	var trial_number = 0;
 	var points = 0;
 	var continuousResp = true;
-	var nTrialspBlk = 5; //if continuousResp is true though, this doesn't matter
 	var nBlocks_p1 = 2;
 	var nBlocks_p2 = 3;
-	var reset_block_timer = true;
 
+	var nTrialspBlk = 5; //if continuousResp is true though, this doesn't matter
 	if (continuousResp){
-		var timeAtBlockStart = null;
-		//var block_duration = 10 * 1000; //milliseconds
-		var nTrialspBlk = 1; //Use some large number to give some sense of indefinite number of trials
+		var nTrialspBlk = 1; 
 	}
 
 	var planet_noship = {
 		type: 'planet-response',
-		stimulus: ['img/bluep.png','img/orangep.png'],// jsPsych.timelineVariable('stimulus'),
-		stimulus_mouseover: ['img/blueSelect.png','img/orangeSelect.png'],		
-		prompt: ['Planet A','Planet B'], //jsPsych.timelineVariable('prompt'),
-		ship_stimulus: ['img/ship1.png','img/ship2.png'],//jsPsych.timelineVariable('ship_stimulus'),
+		stimulus: ['img/bluep.png','img/orangep.png'],
+		stimulus_select:'img/selectring.png',
+		prompt: ['Planet A','Planet B'], 
+		ship_stimulus: ['img/ship1.png','img/ship2.png'],
 		show_ship: false,
 		block_duration: 10 * 1000, //in milliseconds
-		continuousResp: continuousResp,
 		data: {block_type:'planet_noship',
 			   block_number:block_number,
 			   trial_number:trial_number,
 			   },
 		on_start: function(trial){
-			trial.points = points;
+			trial.data.points = points;
 			trial.data.block_number = block_number;
 			trial.data.trial_number = trial_number;
-			if (continuousResp){
-				//At start of block, initialise relevant vars
-				if (reset_block_timer){
-					timeAtBlockStart = performance.now()
-					reset_block_timer = false
-				}
-			}
 		},
 		on_finish: function(data){
 			points = data.points_total;
 			trial_number = data.trial_number;
 			trial_number++;
-			//console.log('Trial ' + trial_number)
 			//Script for continuous response block
 			if (continuousResp){
 				jsPsych.endCurrentTimeline();
-				//console.log('Block duration (' + block_time_elapsed + ' ms) exceeded max time of ' + block_duration + ' ms , moving on to next block.')
-				//trial_number = 0;
-				reset_block_timer = true;
 				block_number = data.block_number;			
 				block_number++
 				console.log('Block ' + block_number)
-
-				// var block_time_elapsed =  (performance.now() - timeAtBlockStart)				
-				// //console.log(block_time_elapsed/1000 + ' seconds')
-				// if (block_time_elapsed > block_duration){
-				// 	jsPsych.endCurrentTimeline();
-				// 	//console.log('Block duration (' + block_time_elapsed + ' ms) exceeded max time of ' + block_duration + ' ms , moving on to next block.')
-				// 	//trial_number = 0;
-				// 	reset_block_timer = true;
-				// 	block_number = data.block_number;			
-				// 	block_number++
-				// 	console.log('Block ' + block_number)
-				//x}				
 			} else {
 				if (trial_number>=nTrialspBlk){
 					trial_number = 0
-					reset_block_timer = true;
 					block_number = data.block_number;			
 					block_number++
 					console.log('Block ' + block_number)
@@ -113,6 +85,7 @@
 				
 		}		
 	}
+
 	//Loop over specified number of blocks
 	for (var i=0; i<nBlocks_p1; i++){
 		var block_noship = {
@@ -135,6 +108,7 @@
 		timeline.push(value_p1);
 		timeline.push(infer_p1);
 	}
+
 	// Push next block
 	// Define pre-block instructions
 	var instr_p2 = {
@@ -143,22 +117,20 @@
 		choices: ['Click this button to proceed.'],
 	}
 	timeline.push(instr_p2);
+
 	//Copy a planet with ship version from noship
 	var planet_ship = Object.assign({},planet_noship); //Note that nested objects might not be copied and simply referenced? Be careful when trying to edit nested objects. Will probably need to clone them separately.
 	planet_ship.show_ship = true;
 	planet_ship.data = Object.assign({},planet_noship.data)
 	planet_ship.data.block_type = 'planet_ship';
-	//planet_ship.shield_charging_time = 2000;
-	//planet_ship.ship_attack_time = 6000;
-	//planet_ship.ship_attack_damage= 0.2;
+	//Push specified number of blocks into timeline
 	for (var i=0; i<nBlocks_p2; i++){
 		var block_ship = {
 			timeline: [planet_ship],
-			//timeline_variables: test_stim,
 			repetitions: nTrialspBlk,
 		}
 		timeline.push(block_ship)
-		//value check p1
+		//value check p2
 		var value_p2 = {
 			type: 'html-button-response',
 			stimulus: 'Value check second phase.',
@@ -172,15 +144,15 @@
 		
 		timeline.push(value_p2);
 		timeline.push(infer_p2);
-		//block_number++
 	}
 
-	// Final page/debrief
-	var infer_p2 = {
+	// Final page/debrief?
+	var finalpg = {
 		type: 'html-button-response',
-		stimulus: 'Final page.',
+		stimulus: 'Final page. Some debriefing info?',
 		choices: ['Click this button to proceed.'],
 	}
+	timeline.push(finalpg)
 
 	//Start experiment
 	jsPsych.init({
@@ -193,7 +165,7 @@
 		on_finish: function(){
 			jsPsych.data.displayData();
 		},
-		//display_element: 'mainDisp',
+
 	})
 
   </script>
