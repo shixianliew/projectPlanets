@@ -169,11 +169,17 @@ jsPsych.plugins["planet-response"] = (function() {
 				default: 4000,
 				description: 'Duration between ship appearance and attack.'
 			},
+			ship_hostile_idx: {
+				type: jsPsych.plugins.parameterType.INT,
+				pretty_name: 'Index of hostile ship',			
+				default: 1,
+				description: 'Index of hostile ship, can be 0 (left) or 1 (right).'
+			},
 			ship_attack_damage: {
 				type: jsPsych.plugins.parameterType.FLOAT,
-				pretty_name: 'Ship A damage',			
+				pretty_name: 'Ship damage',			
 				default: .2,
-				description: 'Proportion of total points that an undefended encounter with Ship A removes.'
+				description: 'Proportion of total points that an undefended encounter with the hostile ship removes.'
 			},
 			shield_charging_time: {
 				type: jsPsych.plugins.parameterType.INT,
@@ -362,7 +368,7 @@ jsPsych.plugins["planet-response"] = (function() {
 				click_idx++
 			}
 			// Log response details
-			response.planets.select.push(choice);
+			response.planets.select.push(Number(choice));
 			response.planets.time_select.push(rt);
 			response.planets.click_idx.push(click_idx)
 
@@ -669,10 +675,10 @@ jsPsych.plugins["planet-response"] = (function() {
 			response.ships.shield_activated.push(shield_activated)
 			
 			var pointslost = 0;
-			if (choice==1 || trial.ship_attack_damage==0){
+			if (choice != trial.ship_hostile_idx || trial.ship_attack_damage==0){
 					var statusmsg = 'Ship passed by without incident'
 					var statusclr = '#b4ba38' //some shade of green								
-			} else if (choice==0 && ! shield_activated){
+			} else if (choice == trial.ship_hostile_idx && !shield_activated){
 				// 20% of points
 				pointslost = Math.round(trial.data.points * trial.ship_attack_damage)
 				trial.data.points -= pointslost
@@ -742,7 +748,9 @@ jsPsych.plugins["planet-response"] = (function() {
 				
 				// gather the data to store for the trial
 				var trial_data = {
-					"stimulus": trial.stimulus,
+					"stimuli": {planets:trial.stimulus,
+								ships:trial.ship_stimulus,
+								ship_hostile_idx: trial.ship_hostile_idx},	
 					"planets": response.planets,
 					"ships": response.ships,
 					"all_outcomes": response.all_outcomes,
