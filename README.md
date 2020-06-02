@@ -37,7 +37,7 @@ Data for the experimental blocks have a JSON structure:
   - `ships.time_outcome` - Timestamp of ship encounter.
 - `stimuli` - Information on the stimuli assignments.
   - `stimuli.planets` - Filenames of the planet images, in order from left to right.
-  - `stimuli.ships` - Filesnames of the ship images, in order from left to right.
+  - `stimuli.ships` - Filenames of the ship images, in order from left to right.
   - `stimuli.ship_hostile_idx` - Integer indicating the assignment of hostile (punishing) ship. 0: left, 1: right.
 - `trial_number` - Index of current trial. Probably not very useful with continuousResp set to true.
 - `viewport_size` - Size of viewport (the browser window) in px.
