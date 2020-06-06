@@ -1,65 +1,332 @@
 <!DOCTYPE html>
 <html>
   <head>
-	<title>Planets and Pirates</title>
-	<script src="jspsych-6.1.0/jspsych.js"></script>
-	<link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
-	<script src="jspsych-6.1.0/plugins/jspsych-html-button-response.js"></script>
-	<script src="jspsych-6.1.0/plugins/jspsych-image-keyboard-response.js"></script>
-	<script src="jspsych-6.1.0/plugins/planet-response.js"></script>
-	
+  	<title>Planets and Pirates</title>
+  	<script src="jspsych-6.1.0/jspsych.js"></script>
+  	<link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+    <script src="jspsych-6.1.0/plugins/jspsych-fullscreen.js"></script>
+  	<script src="jspsych-6.1.0/plugins/jspsych-html-button-response.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-survey-html-form.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-instructions.js"></script>
+  	<script src="jspsych-6.1.0/plugins/jspsych-image-keyboard-response.js"></script>
+  	<script src="jspsych-6.1.0/plugins/planet-response.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-survey-image-likert.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-multi-image-slider-response.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-survey-text.js"></script>
+    <script src="jatos.js"></script>
   </head>
   <body>
 
   </body>
   <script>
 
-	//Initialise timeline
-	var timeline = [];
+  //----------------------------------------------------------------------------
+  /* experiment parameters */
 
-	// Define general instructions
-	var instr_gen = {
-		type: 'html-button-response',
-		stimulus: 'General instructions go here.',
-		choices: ['Click this button to proceed.'],
-	}
-	timeline.push(instr_gen);
+  var group = "NA";
+  var samples = ["MTurk", "SONA", "SONA-online"];
+  let sample = samples[2];
+  var completion_code = (Math.floor(Math.random() * 99999) * 397).toString();
 
-	// Define pre-block instructions
-	var instr_p1 = {
-		type: 'html-button-response',
-		stimulus: 'Pre-block instructions go here.',
-		choices: ['Click this button to proceed.'],
-	}
-	timeline.push(instr_p1);
+  // randomise position of punished planet, left-right assignment of planets and ships
+  var pun_planet_sides = [0, 1]; // position of punished planet, 0 = left (planet A), 1 = right (planet B)
+  let pun_planet_side = "" + jsPsych.randomization.sampleWithReplacement(pun_planet_sides, 1) + "";
 
+  let stim_list = jsPsych.randomization.repeat(['img/bluep.png','img/orangep.png'], 1);
+  let ship_list = jsPsych.randomization.repeat(['img/ship1.png','img/ship2.png'], 1);
 
-	//Define some global variables
+  // define global variables
 	var block_number = 0;
 	var trial_number = 0;
 	var points = 0;
 	var continuousResp = true;
 	var nBlocks_p1 = 2;
 	var nBlocks_p2 = 3;
+  var block_duration = 20 * 1000; // in milliseconds
+  var iti = 1000;
+  var inf_stim_height = 120;
+  var inf_slider_width = 400;
+  var main_stim_height = 250;
 
 	var nTrialspBlk = 5; //if continuousResp is true though, this doesn't matter
 	if (continuousResp){
-		var nTrialspBlk = 1; 
+		var nTrialspBlk = 1;
 	}
 
+  var images = [
+    'img/signal1.png','img/signal2.png','img/signal3.png','img/signal4.png',
+    'img/ship1.png','img/ship2.png',
+    'img/bluep.png','img/orangep.png',
+    'img/cursor.png','img/cursordark.png', 'img/selectring.png',
+    'img/win100.png', 'img/lose.png'
+  ];
+
+  //----------------------------------------------------------------------------
+  /* instructions text */
+
+  consent_text = [
+    '<p>Before you begin, please read the information sheet carefully (you can download the pdf <a href="https://jessicaleephd.files.wordpress.com/2020/03/pis_sona-1-15.pdf" target="_blank">here</a>)</p>' +
+    '<br>' +
+    '<p align="center"><b>PARTICIPANT CONSENT</b></p>' +
+    '<center><img src="./img/PIS1.png"></center>' +
+    '<center><img src="./img/PIS2.png"></center>' +
+    '<center><img src="./img/consent.png"></center>' +
+    'By continuing, you are making a decision whether or not to participate.  Clicking the button below indicates that, having read the information provided on the participant information sheet, you consent to the above.' +
+    '<br></p>'
+  ];
+
+  demo_text = [
+    '<p> Gender: ' +
+    '<input type="radio" name="gender" value="male" required/> Male &nbsp; ' +
+    '<input type="radio" name="gender" value="female" required/> Female &nbsp;' +
+    '<input type="radio" name="gender" value="other" required/> Other<br>' + '<br>' +
+    '<p> Age: <input name="age" type="text" required/> </p>' + '<br>' +
+    '<p> Native language: <input name="language" type="text" required/> </p>' + '<br>'
+  ];
+
+  if (sample === "MTurk") {
+    var MTurk_insert = [
+      '<p>If anything goes wrong during the experiment, please take a screenshot and notify the requester. Do <b>not</b> press the BACK button or quit out of the program. This will make it hard for you to get paid.</p>' +
+      '<p>If you complete the task, you will get your payment no matter what. Please take your time and think about your predictions and judgements seriously. </p>'
+    ]
+  } else {
+    var MTurk_insert = '';
+  }
+
+  var ins = {};
+
+  ins.pretrain1 = [
+    '<p>WELCOME TO THE EXPERIMENT! </p>' +
+    '<p>Throughout the experiment, please read all instructions <b>carefully</b> and click on the buttons to go forward or back. You may need to scroll down on some pages. </p>' +
+    MTurk_insert +
+    '<p>Please <b>do not</b> hit refresh or the back button on your browser as you can only do the experiment ONCE.</p>' +
+    '<p>Please complete the experiment in ONE sitting in FULL SCREEN mode.</p>'
+  ];
+
+  ins.pretrain2 = [
+    '<p>In this experiment you will be playing a game over 5 blocks. </p>' +
+    '<p>In this game, you are an intergalactic trader in space. Your goal is to make as much intergalactic currency as possible! </p>' +
+    '<p>You will be situated between two planets that you can trade with. You can send a signal to each planet by clicking on them. Sometimes locals on these planets will receive the signal and be willing to trade. Each successful trade will earn you currency. </p>'
+    // '<p><b>Note:</b> Whatever you earn in-game will be converted into real money for you at the end of the experiment. The more you earn in-game, the more you make in real life. You can earn more currency by trading with both planets. </p>'
+  ];
+
+  ins.pretrain3 = [
+    '<p>You can click on each of the planets as many times as you like. Just remember, the aim is to earn as much currency as possible! </p>' +
+    '<p>Between each block we will ask you some questions about each of the game elements. </p>'
+  ];
+
+  ins.phase2 = [
+    '<p>There have been reports of local pirates stealing from trading ships. Watch out! </p>' +
+    '<p>In the next few blocks, trading with a planet might result in the arrival of a pirate ship. On some occasions, the priates might steal your currency, while on other occasions, they will not. </p>' +
+    '<p>Your ship is equipped with a shield that can keep these pirates from stealing from you, but the shield will not always be available. If available, you can activate the shield by pressing the ACTIVATE button. </p>' +
+    '<p>Remember, your goal is still to earn as much currency as possible! </p>'
+  ];
+
+  ins.debrief = [
+    '<p>Thank you for completing this study! </p>' +
+    '<p>Debrief debrief debrief... </p>'
+  ];
+
+  //----------------------------------------------------------------------------
+  /* questionnaire */
+
+  // valence check
+  var valence_q = 'How do you feel about each of these game elements: ' +
+  '<br><br>';
+
+  var valence_labels = [
+    'Very negative',
+    'Slightly negative',
+    'Neutral',
+    'Slightly positive',
+    'Very positive'
+  ];
+
+  // inference check
+  var inference_q = [
+    'How confident are you that interacting with <b>planet A</b> led to each of these game elements:',
+    'How confident are you that interacting with <b>planet B</b> led to each of these game elements:'
+  ];
+
+  // phase 1, planet A
+  var inf_img_p1_A = [
+    {
+      stimulus: stim_list[1],
+      text: "Planet B"
+    },
+    {
+      stimulus: 'img/signal1.png',
+      text: "Trade signal"
+    },
+    {
+      stimulus: 'img/win100.png',
+      text: "Winning $100"
+    }
+  ];
+
+  // phase 1, planet B
+  var inf_img_p1_B = [
+    {
+      stimulus: stim_list[0],
+      text: "Planet A"
+    },
+    {
+      stimulus: 'img/signal1.png',
+      text: "Trade signal"
+    },
+    {
+      stimulus: 'img/win100.png',
+      text: "Winning $100"
+    }
+  ];
+
+  // phase 2, planet A
+  var inf_img_p2_A = [
+    {
+      stimulus: stim_list[1],
+      text: "Planet B"
+    },
+    {
+      stimulus: 'img/signal1.png',
+      text: "Trade signal"
+    },
+    {
+      stimulus: 'img/win100.png',
+      text: "Winning $100"
+    },
+    {
+      stimulus: 'img/ship1.png',
+      text: "Ship 1"
+    },
+    {
+      stimulus: 'img/ship2.png',
+      text: "Ship 2"
+    },
+    {
+      stimulus: 'img/lose.png',
+      text: "Losing $"
+    }
+  ];
+
+  // phase 2, planet B
+  var inf_img_p2_B = [
+    {
+      stimulus: stim_list[0],
+      text: "Planet A"
+    },
+    {
+      stimulus: 'img/signal1.png',
+      text: "Trade signal"
+    },
+    {
+      stimulus: 'img/win100.png',
+      text: "Winning $100"
+    },
+    {
+      stimulus: 'img/ship1.png',
+      text: "Ship 1"
+    },
+    {
+      stimulus: 'img/ship2.png',
+      text: "Ship 2"
+    },
+    {
+      stimulus: 'img/lose.png',
+      text: "Losing $"
+    }
+  ];
+
+  var inference_labels = [
+    '<p>' + '100% confident ' + '<br>' + 'they are NOT related' + '</p>',
+    '<p>' + '100% confident ' + '<br>' + 'they are RELATED' + '</p>'
+  ];
+
+  // open-ended q
+  var open_q = 'What is the best approach to trading in this game? Did your strategy change between blocks? Please provide as much detail as possible. ';
+
+  //----------------------------------------------------------------------------
+  /* experiment blocks */
+
+	// initialise timeline
+	var timeline = [];
+
+  // force full screen
+  timeline.push(
+    {
+      type: 'fullscreen',
+      fullscreen_mode: true
+    }
+  );
+
+  // info statement and consent
+  var consent_block = {
+		type: 'html-button-response',
+		stimulus: consent_text,
+		choices: ['I consent to participate'],
+    data: {
+      phase: 'consent'
+    }
+	}
+	timeline.push(consent_block);
+
+  // demographics
+  var demographics_block = {
+    type: 'survey-html-form',
+    preamble: '<p><b>Please fill in your demographic details</b></p>',
+    html: demo_text,
+    data: {
+      phase: 'demographics'
+    }
+  };
+  timeline.push(demographics_block);
+
+	// define general instructions
+  var gen_ins_block = {
+    type: 'instructions',
+    pages: [
+      ins.pretrain1,
+      ins.pretrain2,
+      ins.pretrain3
+      ],
+    allow_keys: false,
+    show_clickable_nav: true,
+    post_trial_gap: iti,
+    data: {
+      phase: 'instructions'
+    }
+  };
+  timeline.push(gen_ins_block);
+
+  // ----- Phase 1 -----
+
+	// define pre-phase 1 instructions
+	var instr_p1 = {
+		type: 'html-button-response',
+		stimulus: 'Instructions quiz here?',
+		choices: ['Click this button to proceed.'],
+    data: {
+      phase: 'quiz'
+    }
+	}
+	timeline.push(instr_p1);
+
+  // define task blocks with no ships
 	var planet_noship = {
 		type: 'planet-response',
-		stimulus: ['img/bluep.png','img/orangep.png'],
+		stimulus: stim_list,
 		stimulus_select:'img/selectring.png',
-		prompt: ['Planet A','Planet B'], 
-		ship_stimulus: ['img/ship1.png','img/ship2.png'],
+		prompt: ['Planet A','Planet B'],
+		ship_stimulus: ship_list,
 		show_ship: false,
-		block_duration: 10 * 1000, //in milliseconds
-		data: {block_type:'planet_noship',
-			   block_number:block_number,
-			   trial_number:trial_number,
-			   },
-		on_start: function(trial){
+    ship_hostile_idx: pun_planet_side,
+		block_duration: block_duration,
+		data: {
+      phase: 'phase1',
+      block_type: 'planet_noship',
+      block_number: block_number,
+      trial_number: trial_number
+    },
+		on_start: function(trial) {
 			trial.data.points = points;
 			trial.data.block_number = block_number;
 			trial.data.trial_number = trial_number;
@@ -68,106 +335,333 @@
 			points = data.points_total;
 			trial_number = data.trial_number;
 			trial_number++;
-			//Script for continuous response block
-			if (continuousResp){
+
+			// script for continuous response block
+			if (continuousResp) {
 				jsPsych.endCurrentTimeline();
-				block_number = data.block_number;			
+				block_number = data.block_number;
 				block_number++
 				console.log('Block ' + block_number)
 			} else {
-				if (trial_number>=nTrialspBlk){
+				if (trial_number >= nTrialspBlk) {
 					trial_number = 0
-					block_number = data.block_number;			
+					block_number = data.block_number;
 					block_number++
 					console.log('Block ' + block_number)
 				}
 			}
-				
-		}		
+		}
 	}
 
-	//Loop over specified number of blocks
-	for (var i=0; i<nBlocks_p1; i++){
+	// loop over specified number of blocks
+	for (var i=0; i<nBlocks_p1; i++) {
 		var block_noship = {
 			timeline: [planet_noship],
 			repetitions: nTrialspBlk,
+      data: {
+        phase: 'phase1'
+      }
 		}
-		timeline.push(block_noship)
-		//value check p1
-		var value_p1 = {
-			type: 'html-button-response',
-			stimulus: 'Value check first phase.',
-			choices: ['Click this button to proceed.'],
-		}
-		var infer_p1 = {
-			type: 'html-button-response',
-			stimulus: 'Inference check first phase. ',
-			choices: ['Click this button to proceed.'],
-		}
-		
+		timeline.push(block_noship);
+
+		// value check p1
+    var value_p1 = {
+      type: 'survey-image-likert',
+      preamble: valence_q,
+      questions: [
+        {stimulus: 'img/signal1.png', prompt:'Trade signal', name: 'signal', labels: valence_labels, required:true},
+        {stimulus: 'img/win100.png', prompt:'Winning $100', name: 'winning', labels: valence_labels, required:true},
+        {stimulus: stim_list[0], prompt:'Planet A', name: 'planetA', labels: valence_labels, required:true},
+        {stimulus: stim_list[1], prompt:'Planet B', name: 'planetB', labels: valence_labels, required:true}
+      ],
+      randomize_question_order: true,
+      data: {
+        phase: 'val_check_1',
+        block_number: i+1
+      }
+    };
+
+    // inference check p1 (planet A)
+    var infer_p1_A = {
+      type: 'multi-image-slider-response',
+      main_stimulus: stim_list[0],
+      main_stimulus_height: main_stim_height,
+      prompt: inference_q[0],
+      stimulus_1: inf_img_p1_A[0].stimulus,
+      stimulus_2: inf_img_p1_A[1].stimulus,
+      stimulus_3: inf_img_p1_A[2].stimulus,
+      stim_text_1: inf_img_p1_A[0].text,
+      stim_text_2: inf_img_p1_A[1].text,
+      stim_text_3: inf_img_p1_A[2].text,
+      labels: inference_labels,
+      stimulus_height: inf_stim_height,
+      slider_width: inf_slider_width,
+      require_movement: true,
+      data: {
+        phase: 'inf_check_A_1',
+        block_number: i+1
+      }
+    };
+
+    // inference check p1 (planet B)
+    var infer_p1_B = {
+      type: 'multi-image-slider-response',
+      main_stimulus: stim_list[1],
+      main_stimulus_height: main_stim_height,
+      prompt: inference_q[1],
+      stimulus_1: inf_img_p1_B[0].stimulus,
+      stimulus_2: inf_img_p1_B[1].stimulus,
+      stimulus_3: inf_img_p1_B[2].stimulus,
+      stim_text_1: inf_img_p1_B[0].text,
+      stim_text_2: inf_img_p1_B[1].text,
+      stim_text_3: inf_img_p1_B[2].text,
+      labels: inference_labels,
+      stimulus_height: inf_stim_height,
+      slider_width: inf_slider_width,
+      require_movement: true,
+      data: {
+        phase: 'inf_check_B_1',
+        block_number: i+1
+      }
+    };
+
 		timeline.push(value_p1);
-		timeline.push(infer_p1);
+		timeline.push(infer_p1_A);
+    timeline.push(infer_p1_B);
 	}
 
-	// Push next block
-	// Define pre-block instructions
-	var instr_p2 = {
-		type: 'html-button-response',
-		stimulus: 'Pre-block instructions with pirate warnings? go here.',
-		choices: ['Click this button to proceed.'],
-	}
-	timeline.push(instr_p2);
+	// ----- Phase 2 -----
 
-	//Copy a planet with ship version from noship
-	var planet_ship = Object.assign({},planet_noship); //Note that nested objects might not be copied and simply referenced? Be careful when trying to edit nested objects. Will probably need to clone them separately.
+	// define pre-phase 2 instructions
+  var phase2_ins_block = {
+    type: 'instructions',
+    pages: [
+      ins.phase2
+      ],
+    allow_keys: false,
+    show_clickable_nav: true,
+    post_trial_gap: iti,
+    data: {
+      phase: 'instructions'
+    }
+  };
+  timeline.push(phase2_ins_block);
+
+	// copy a planet with ship version from noship
+	var planet_ship = Object.assign({},planet_noship); // note that nested objects might not be copied and simply referenced? Be careful when trying to edit nested objects. Will probably need to clone them separately.
 	planet_ship.show_ship = true;
 	planet_ship.data = Object.assign({},planet_noship.data)
 	planet_ship.data.block_type = 'planet_ship';
-	//Push specified number of blocks into timeline
+
+	// push specified number of blocks into timeline
 	for (var i=0; i<nBlocks_p2; i++){
 		var block_ship = {
 			timeline: [planet_ship],
 			repetitions: nTrialspBlk,
+      data: {
+        phase: 'phase2'
+      }
 		}
-		timeline.push(block_ship)
-		//value check p2
-		var value_p2 = {
-			type: 'html-button-response',
-			stimulus: 'Value check second phase.',
-			choices: ['Click this button to proceed.'],
-		}
-		var infer_p2 = {
-			type: 'html-button-response',
-			stimulus: 'Inference check second phase.',
-			choices: ['Click this button to proceed.'],
-		}
-		
+		timeline.push(block_ship);
+
+    // value check p2
+    var value_p2 = {
+      type: 'survey-image-likert',
+      preamble: valence_q,
+      questions: [
+        {stimulus: 'img/signal1.png', prompt:'Trade signal', name: 'signal', labels: valence_labels, required:true},
+        {stimulus: 'img/win100.png', prompt:'Winning $100', name: 'winning', labels: valence_labels, required:true},
+        {stimulus: stim_list[0], prompt:'Planet A', name: 'planetA', labels: valence_labels, required:true},
+        {stimulus: stim_list[1], prompt:'Planet B', name: 'planetB', labels: valence_labels, required:true}
+      ],
+      randomize_question_order: true,
+      data: {
+        phase: 'val_check_2',
+        block_number: i+1
+      }
+    };
+
+    // inference check p2 (planet A) part I
+    var infer_p2_A_1 = {
+      type: 'multi-image-slider-response',
+      main_stimulus: stim_list[0],
+      main_stimulus_height: main_stim_height,
+      prompt: inference_q[0],
+      stimulus_1: inf_img_p2_A[0].stimulus,
+      stimulus_2: inf_img_p2_A[1].stimulus,
+      stimulus_3: inf_img_p2_A[2].stimulus,
+      stim_text_1: inf_img_p2_A[0].text,
+      stim_text_2: inf_img_p2_A[1].text,
+      stim_text_3: inf_img_p2_A[2].text,
+      labels: inference_labels,
+      stimulus_height: inf_stim_height,
+      slider_width: inf_slider_width,
+      require_movement: true,
+      data: {
+        phase: 'inf_check_A_2',
+        block_number: i+1
+      }
+    };
+
+    // inference check p2 (planet A) part II
+    var infer_p2_A_2 = {
+      type: 'multi-image-slider-response',
+      main_stimulus: stim_list[0],
+      main_stimulus_height: main_stim_height,
+      prompt: inference_q[0],
+      stimulus_1: inf_img_p2_A[3].stimulus,
+      stimulus_2: inf_img_p2_A[4].stimulus,
+      stimulus_3: inf_img_p2_A[5].stimulus,
+      stim_text_1: inf_img_p2_A[3].text,
+      stim_text_2: inf_img_p2_A[4].text,
+      stim_text_3: inf_img_p2_A[5].text,
+      labels: inference_labels,
+      stimulus_height: inf_stim_height,
+      slider_width: inf_slider_width,
+      require_movement: true,
+      data: {
+        phase: 'inf_check_A_2',
+        block_number: i+1
+      }
+    };
+
+    // inference check p2 (planet B) part I
+    var infer_p2_B_1 = {
+      type: 'multi-image-slider-response',
+      main_stimulus: stim_list[1],
+      main_stimulus_height: main_stim_height,
+      prompt: inference_q[1],
+      stimulus_1: inf_img_p2_B[0].stimulus,
+      stimulus_2: inf_img_p2_B[1].stimulus,
+      stimulus_3: inf_img_p2_B[2].stimulus,
+      stim_text_1: inf_img_p2_B[0].text,
+      stim_text_2: inf_img_p2_B[1].text,
+      stim_text_3: inf_img_p2_B[2].text,
+      labels: inference_labels,
+      stimulus_height: inf_stim_height,
+      slider_width: inf_slider_width,
+      require_movement: true,
+      data: {
+        phase: 'inf_check_B_2',
+        block_number: i+1
+      }
+    };
+
+    // inference check p2 (planet B) part II
+    var infer_p2_B_2 = {
+      type: 'multi-image-slider-response',
+      main_stimulus: stim_list[1],
+      main_stimulus_height: main_stim_height,
+      prompt: inference_q[1],
+      stimulus_1: inf_img_p2_B[3].stimulus,
+      stimulus_2: inf_img_p2_B[4].stimulus,
+      stimulus_3: inf_img_p2_B[5].stimulus,
+      stim_text_1: inf_img_p2_B[3].text,
+      stim_text_2: inf_img_p2_B[4].text,
+      stim_text_3: inf_img_p2_B[5].text,
+      labels: inference_labels,
+      stimulus_height: inf_stim_height,
+      slider_width: inf_slider_width,
+      require_movement: true,
+      data: {
+        phase: 'inf_check_B_2',
+        block_number: i+1
+      }
+    };
+
 		timeline.push(value_p2);
-		timeline.push(infer_p2);
+		timeline.push(infer_p2_A_1);
+    timeline.push(infer_p2_A_2);
+    timeline.push(infer_p2_B_1);
+    timeline.push(infer_p2_B_2);
 	}
 
-	// Final page/debrief?
-	var finalpg = {
-		type: 'html-button-response',
-		stimulus: 'Final page. Some debriefing info?',
-		choices: ['Click this button to proceed.'],
-	}
-	timeline.push(finalpg)
+  // ----- HREAP-C stuff -----
 
-	//Start experiment
-	jsPsych.init({
-		timeline: timeline,
-		preload_images: ['img/signal1.png','img/signal2.png','img/signal3.png','img/signal4.png',
-						 'img/ship1.png','img/ship2.png',
-						 'img/bluep.png','img/orangep.png',
-						 'img/cursor.png','img/cursordark.png',
-						 'img/selectring.png'],
-		
-		on_finish: function(){
-			jsPsych.data.displayData();
-		},
+  // debrief
+  var debrief_block = {
+    type: 'instructions',
+    pages: [
+      ins.debrief
+      ],
+    button_label_next: "I acknowledge that I have received this debriefing information",
+    show_clickable_nav: true,
+    post_trial_gap: iti,
+    data: {
+      phase: 'debrief'
+    }
+  };
+  timeline.push(debrief_block);
 
-	})
+  var contact_block = {
+    type: 'survey-text',
+    questions: [
+      {
+        prompt: 'If you would like to receive a copy of the study results via email, please provide your email address below. Your email address will be used for this purpose only, and will not be stored alongside your data.',
+        rows: 2,
+        columns: 80
+      }
+    ],
+    preamble: '<font size="-1">You may leave this blank if you wish. </font>',
+    data: {
+      phase: 'contact'
+    }
+  };
+  timeline.push(contact_block);
+
+  //----------------------------------------------------------------------------
+	// start experiment
+
+  jatos.onLoad(function() {
+
+    // subject info
+    var finish_url_base = jatos.studyJsonInput.finish_url_base;
+    var sona_id = jatos.urlQueryParameters.id;
+    if (sona_id === undefined) {
+        sona_id = null;
+    }
+    var completion_url = null;
+    if (sona_id) {
+        // if sona ID, form the URL for auto-crediting
+        completion_url = finish_url_base + sona_id;
+    }
+    else {
+        completion_url = "https://unsw-psy.sona-systems.com";
+    }
+
+    if (sample === "MTurk") {
+      var finish_msg = 'All done!<br><br>Your completion code is <span id="completion_code" style="font-weight:bold;font-size:130%">' + completion_code + '</span>. To receive payment for the HIT, return to the Amazon Mechanical Turk page and enter this code. Please contact us if something goes wrong and we\'ll fix it as quickly as possible.';
+    } else if (sample === "SONA") {
+      var finish_msg = 'All done! Please let the experimenter know.';
+    } else if (sample === "SONA-online") {
+      var finish_msg = 'All done! Please click <a href="' + completion_url + '">here</a> to be returned to Sona and receive your credit';
+    }
+
+    // add properties to each trial in the jsPsych data
+    jsPsych.data.addProperties({
+        sona_id: sona_id, // completion_code: completion_code,
+        group: group,
+        sample: sample,
+        pun_planet_side: pun_planet_side,
+        pun_planet: stim_list[pun_planet_side],
+        pun_ship: ship_list[pun_planet_side],
+    });
+
+  	jsPsych.init({
+  		timeline: timeline,
+  		preload_images: images,
+      on_finish: function() {
+        var result = jsPsych.data.get().json();
+        jatos.submitResultData(result, function() {
+          document.write('<div id="endscreen" class="endscreen" style="width:1000px"><div class="endscreen" style="text-align:center; border:0px solid; padding:10px; font-size:120%; width:800px; float:right"><p><br><br><br>' +
+          finish_msg +
+          '</p></div></div>')
+        });
+      }
+
+  	});
+
+  });
 
   </script>
 </html>

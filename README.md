@@ -1,9 +1,10 @@
-Repo for planets project.
+# planets-task
 
-To test the website, go here: [https://raw.githack.com/shixianliew/projectPlanets/master/Experiment/index.html](https://raw.githack.com/shixianliew/projectPlanets/master/Experiment/index.html)
+Authors: Jessica C. Lee & Shi Xian Liew
 
-Data for the experimental blocks have a JSON structure:
+Code repo for the planets + pirates task, where the aim is to accumulate points. Participants can click on two planets to receive rewards probabilistically (instrumental contingency). Clicking on a planet sometimes results in a ship appearing that either leads to a pirate attack (CS+) or nothing (CS-).
 
+Data for the experimental blocks is recorded continuous and have a JSON structure:
 - `all_outcomes` -  Object containing gains/losses obtained and at what time.
   - `all_outcomes.outcome` - Array containing results of each outcome (wins or nothing from trades, losses or nothing
     from ships).
@@ -11,7 +12,7 @@ Data for the experimental blocks have a JSON structure:
   - `all_outcomes.total` - Running total of points.
 - `all_clicks` - Object containing details on every mousedown during a block.
   - `all_clicks.element` - ID of element if mousedown on visible element.
-  - `all_clicks.idx` - Index of each mousedown. 
+  - `all_clicks.idx` - Index of each mousedown.
   - `all_clicks.loc` - Location of cursor on mousedown in px, from topleft corner of viewport.
   - `all_clicks.timestamp` - Timestamp of mousedown.
 - `block_type` - String specifying what kind of block it is. Currently it's probably either set to 'planet_noship' or
@@ -28,7 +29,7 @@ Data for the experimental blocks have a JSON structure:
 - `points_total` - Current total number of points at end of block. Should be same as last element in all_outcomes.outcome.
 - `ships` - Object containing details on every ship appearance and shield status/click.
   - `ships.type` - Index of ship that appeared (currently 0 for Ship I from left blue planet, 1 for Ship II from right
-    orange planet.)	
+    orange planet.)
   - `ships.time_appear` - Timestamp at appearance of ship.
   - `ships.shield_available` - Shield availability (after charging) at the appearance of ship. (`true`/`false`)
   - `ships.shield_activated` - Shield activation status (`true`/`false`; is `null` when shield is not available)
@@ -41,5 +42,3 @@ Data for the experimental blocks have a JSON structure:
   - `stimuli.ship_hostile_idx` - Integer indicating the assignment of hostile (punishing) ship. 0: left, 1: right.
 - `trial_number` - Index of current trial. Probably not very useful with continuousResp set to true.
 - `viewport_size` - Size of viewport (the browser window) in px.
-
-More info to come.
