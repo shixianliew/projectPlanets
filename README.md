@@ -2,9 +2,9 @@
 
 Authors: Jessica C. Lee & Shi Xian Liew
 
-Code repo for the planets + pirates task, where the aim is to accumulate points. Participants can click on two planets to receive rewards probabilistically (instrumental contingency). Clicking on a planet sometimes results in a ship appearing that either leads to a pirate attack (CS+) or nothing (CS-).
+Code repo for the planets + pirates task. Participants can click on two planets to receive probabilistic rewards. Clicking on a planet sometimes results in a ship (CS) appearing that either leads to a pirate attack (+) or nothing (-).
 
-Data for the experimental blocks is recorded continuous and have a JSON structure:
+Data for the experimental blocks is recorded continuously and have a JSON structure:
 - `all_outcomes` -  Object containing gains/losses obtained and at what time.
   - `all_outcomes.outcome` - Array containing results of each outcome (wins or nothing from trades, losses or nothing
     from ships).
