@@ -8,10 +8,12 @@
   	<script src="jspsych-6.1.0/plugins/jspsych-html-button-response.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-html-form.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-instructions.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
   	<script src="jspsych-6.1.0/plugins/jspsych-image-keyboard-response.js"></script>
   	<script src="jspsych-6.1.0/plugins/planet-response.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-image-likert.js"></script>
-    <script src="jspsych-6.1.0/plugins/jspsych-multi-image-slider-response.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-inference-check-1.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-inference-check-4.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-text.js"></script>
     <script src="jatos.js"></script>
   </head>
@@ -44,8 +46,8 @@
 	var nBlocks_p2 = 3;
   var block_duration = 20 * 1000; // in milliseconds
   var iti = 1000;
-  var inf_stim_height = 120;
-  var inf_slider_width = 400;
+  var inf_stim_height = 80;
+  var inf_slider_width = 500;
   var main_stim_height = 250;
 
 	var nTrialspBlk = 5; //if continuousResp is true though, this doesn't matter
@@ -112,12 +114,24 @@
 
   ins.pretrain3 = [
     '<p>You can click on each of the planets as many times as you like. Just remember, the aim is to earn as much currency as possible! </p>' +
-    '<p>Between each block we will ask you some questions about each of the game elements. </p>'
+    '<p>There are multiple blocks in this experiment. Between each block we will ask you some questions about each of the game elements. </p>'
   ];
+
+  // instruction check
+  var Q0_text = "<b>Question 1:</b> The aim of the task is to:";
+  var Q0_answers = ["Make as much currency as possible", "Battle the aliens on the planets"];
+  var Q1_text = "<b>Question 2:</b> Clicking on each planet will: ";
+  var Q1_answers = ["Make the planet disappear", "Sometimes result in a successful trade, earning me currency"];
+  var Q2_text = "<b>Question 3:</b> There will be multiple blocks in this experiment, with questions in between each block. ";
+  var Q2_answers = ["FALSE", "TRUE"];
+  var correctstring = '{"Q0":"' + Q0_answers[0] +
+    '","Q1":"' + Q1_answers[1] +
+    '","Q2":"' + Q2_answers[1] +
+    '"}';
 
   ins.phase2 = [
     '<p>There have been reports of local pirates stealing from trading ships. Watch out! </p>' +
-    '<p>In the next few blocks, trading with a planet might result in the arrival of a pirate ship. On some occasions, the priates might steal your currency, while on other occasions, they will not. </p>' +
+    '<p>In the next few blocks, trading with a planet might result in the arrival of a pirate ship. </p>' +
     '<p>Your ship is equipped with a shield that can keep these pirates from stealing from you, but the shield will not always be available. If available, you can activate the shield by pressing the ACTIVATE button. </p>' +
     '<p>Remember, your goal is still to earn as much currency as possible! </p>'
   ];
@@ -142,22 +156,32 @@
     'Very positive'
   ];
 
-  // inference check
-  var inference_q = [
-    'How confident are you that interacting with <b>planet A</b> led to each of these game elements:',
-    'How confident are you that interacting with <b>planet B</b> led to each of these game elements:'
+  // inference check prompt
+  var inference_prompt = [
+    'Please answer the following questions with respect to <b>Planet A</b> (left planet):',
+    'Please answer the following questions with respect to <b>Planet B</b> (right planet):',
+    'Please answer the following questions with respect to <b>Ship 1</b>:',
+    'Please answer the following questions with respect to <b>Ship 2</b>:',
+  ];
+
+  // contingency question
+  var contingency_q = [
+    'How OFTEN did interacting with <b>planet A</b> lead to the above outcome?',
+    'How OFTEN did interacting with <b>planet B</b> lead to the above outcome?',
+    'How OFTEN did interacting with <b>Ship 1</b> lead to the above outcome?',
+    'How OFTEN did interacting with <b>Ship 2</b> lead to the above outcome?',
+  ];
+
+  // confidence question
+  var confidence_q = [
+    'How CONFIDENT are you that interacting with <b>planet A</b> led to the above outcome?',
+    'How CONFIDENT are you that interacting with <b>planet B</b> led to the above outcome?',
+    'How CONFIDENT are you that interacting with <b>Ship 1</b> led to the above outcome?',
+    'How CONFIDENT are you that interacting with <b>Ship 2</b> led to the above outcome?',
   ];
 
   // phase 1, planet A
   var inf_img_p1_A = [
-    {
-      stimulus: stim_list[1],
-      text: "Planet B"
-    },
-    {
-      stimulus: 'img/signal1.png',
-      text: "Trade signal"
-    },
     {
       stimulus: 'img/win100.png',
       text: "Winning $100"
@@ -167,14 +191,6 @@
   // phase 1, planet B
   var inf_img_p1_B = [
     {
-      stimulus: stim_list[0],
-      text: "Planet A"
-    },
-    {
-      stimulus: 'img/signal1.png',
-      text: "Trade signal"
-    },
-    {
       stimulus: 'img/win100.png',
       text: "Winning $100"
     }
@@ -182,14 +198,6 @@
 
   // phase 2, planet A
   var inf_img_p2_A = [
-    {
-      stimulus: stim_list[1],
-      text: "Planet B"
-    },
-    {
-      stimulus: 'img/signal1.png',
-      text: "Trade signal"
-    },
     {
       stimulus: 'img/win100.png',
       text: "Winning $100"
@@ -211,14 +219,6 @@
   // phase 2, planet B
   var inf_img_p2_B = [
     {
-      stimulus: stim_list[0],
-      text: "Planet A"
-    },
-    {
-      stimulus: 'img/signal1.png',
-      text: "Trade signal"
-    },
-    {
       stimulus: 'img/win100.png',
       text: "Winning $100"
     },
@@ -236,9 +236,17 @@
     }
   ];
 
-  var inference_labels = [
-    '<p>' + '100% confident ' + '<br>' + 'they are NOT related' + '</p>',
-    '<p>' + '100% confident ' + '<br>' + 'they are RELATED' + '</p>'
+  var contingency_labels = [
+    '<p>' + 'Never' + '</p>',
+    '<p>' + 'Sometimes' + '</p>',
+    '<p>' + 'Every time' + '</p>'
+  ];
+
+  var confidence_labels = [
+    '<p>' + 'Very uncertain' + '</p>',
+    '<p>' + 'Somewhat uncertain' + '</p>',
+    '<p>' + 'Somewhat confident' + '</p>',
+    '<p>' + 'Very confident' + '</p>'
   ];
 
   // open-ended q
@@ -248,6 +256,7 @@
   /* experiment blocks */
 
 	// initialise timeline
+  var introloop = [];
 	var timeline = [];
 
   // force full screen
@@ -280,7 +289,12 @@
   };
   timeline.push(demographics_block);
 
-	// define general instructions
+  //----------------------------------------------------------------------------
+  /* introloop:
+  - includes instructions, instruction check, and splash screen
+  - loops continuously until participant gets questions correct */
+
+  // define general instructions
   var gen_ins_block = {
     type: 'instructions',
     pages: [
@@ -295,20 +309,65 @@
       phase: 'instructions'
     }
   };
-  timeline.push(gen_ins_block);
+  introloop.push(gen_ins_block);
 
-  // ----- Phase 1 -----
-
-	// define pre-phase 1 instructions
-	var instr_p1 = {
-		type: 'html-button-response',
-		stimulus: 'Instructions quiz here?',
-		choices: ['Click this button to proceed.'],
-    data: {
-      phase: 'quiz'
+  // define instruction check block
+  var instructioncorrect = false;
+  var instruction_check = {
+    type: "survey-multi-choice",
+    preamble: ["<p align='center'><b>Check your knowledge before you begin!</b></p>"],
+    questions: [
+      {prompt: Q0_text, options: Q0_answers, required: true,},
+      {prompt: Q1_text, options: Q1_answers, required: true},
+      {prompt: Q2_text, options: Q2_answers, required: true}
+        ],
+    on_finish: function(data) {
+      if( data.responses == correctstring) {
+        action = false;
+        instructioncorrect = true;
+      }
     }
-	}
-	timeline.push(instr_p1);
+  }
+  introloop.push(instruction_check);
+
+  // define a page for the incorrect response
+  var showsplash = true;
+  var splash_screen = {
+    type: 'html-button-response',
+    choices: ['Click here to read the instructions again'],
+    stimulus: '<center>Unfortunately, at least one of your answers was incorrect.</center>'
+  }
+
+  // push it to a conditional node that only shows it if the response was wrong
+  var conditional_splash = {
+    timeline: [splash_screen],
+    conditional_function: function(data) {
+          return !instructioncorrect // skip if correct
+      }
+  }
+  introloop.push(conditional_splash);
+
+  // add all to loop node and push to timeline
+  var loop_node = {
+    timeline: introloop,
+    loop_function: function(data) {
+          //var action = true;
+          return !instructioncorrect // stop looping if correct
+      }
+  }
+  timeline.push(loop_node);
+
+  // success trial
+  var successtrial = {
+    type: 'html-button-response',
+    post_trial_gap: 0,
+    choices: ['Click here to start Phase 1'],
+    stimulus: '<center>Well done!</center>'
+  };
+  timeline.push(successtrial);
+
+  //----------------------------------------------------------------------------
+  // ----- Phase 1 -----
 
   // define task blocks with no ships
 	var planet_noship = {
@@ -320,6 +379,9 @@
 		show_ship: false,
     ship_hostile_idx: pun_planet_side,
 		block_duration: block_duration,
+    reset_planet_wait: 1000,
+    shield_charging_time: 3000,
+    ship_attack_time: 6000,
 		data: {
       phase: 'phase1',
       block_type: 'planet_noship',
@@ -364,17 +426,16 @@
 		}
 		timeline.push(block_noship);
 
-		// value check p1
-    var value_p1 = {
+		// valence check p1
+    var valence_p1 = {
       type: 'survey-image-likert',
       preamble: valence_q,
       questions: [
-        {stimulus: 'img/signal1.png', prompt:'Trade signal', name: 'signal', labels: valence_labels, required:true},
         {stimulus: 'img/win100.png', prompt:'Winning $100', name: 'winning', labels: valence_labels, required:true},
-        {stimulus: stim_list[0], prompt:'Planet A', name: 'planetA', labels: valence_labels, required:true},
-        {stimulus: stim_list[1], prompt:'Planet B', name: 'planetB', labels: valence_labels, required:true}
+        {stimulus: stim_list[0], prompt:'Planet A (left)', name: 'planetA', labels: valence_labels, required:true},
+        {stimulus: stim_list[1], prompt:'Planet B (right)', name: 'planetB', labels: valence_labels, required:true}
       ],
-      randomize_question_order: true,
+      randomize_question_order: false,
       data: {
         phase: 'val_check_1',
         block_number: i+1
@@ -383,17 +444,16 @@
 
     // inference check p1 (planet A)
     var infer_p1_A = {
-      type: 'multi-image-slider-response',
+      type: 'inference-check-1',
       main_stimulus: stim_list[0],
       main_stimulus_height: main_stim_height,
-      prompt: inference_q[0],
+      prompt: inference_prompt[0],
       stimulus_1: inf_img_p1_A[0].stimulus,
-      stimulus_2: inf_img_p1_A[1].stimulus,
-      stimulus_3: inf_img_p1_A[2].stimulus,
       stim_text_1: inf_img_p1_A[0].text,
-      stim_text_2: inf_img_p1_A[1].text,
-      stim_text_3: inf_img_p1_A[2].text,
-      labels: inference_labels,
+      slider_text_top: contingency_q[0],
+      slider_text_bottom: confidence_q[0],
+      labels_top: contingency_labels,
+      labels_bottom: confidence_labels,
       stimulus_height: inf_stim_height,
       slider_width: inf_slider_width,
       require_movement: true,
@@ -405,17 +465,16 @@
 
     // inference check p1 (planet B)
     var infer_p1_B = {
-      type: 'multi-image-slider-response',
+      type: 'inference-check-1',
       main_stimulus: stim_list[1],
       main_stimulus_height: main_stim_height,
-      prompt: inference_q[1],
+      prompt: inference_prompt[1],
       stimulus_1: inf_img_p1_B[0].stimulus,
-      stimulus_2: inf_img_p1_B[1].stimulus,
-      stimulus_3: inf_img_p1_B[2].stimulus,
       stim_text_1: inf_img_p1_B[0].text,
-      stim_text_2: inf_img_p1_B[1].text,
-      stim_text_3: inf_img_p1_B[2].text,
-      labels: inference_labels,
+      slider_text_top: contingency_q[1],
+      slider_text_bottom: confidence_q[1],
+      labels_top: contingency_labels,
+      labels_bottom: confidence_labels,
       stimulus_height: inf_stim_height,
       slider_width: inf_slider_width,
       require_movement: true,
@@ -425,7 +484,7 @@
       }
     };
 
-		timeline.push(value_p1);
+		timeline.push(valence_p1);
 		timeline.push(infer_p1_A);
     timeline.push(infer_p1_B);
 	}
@@ -465,35 +524,42 @@
 		timeline.push(block_ship);
 
     // value check p2
-    var value_p2 = {
+    var valence_p2 = {
       type: 'survey-image-likert',
       preamble: valence_q,
       questions: [
-        {stimulus: 'img/signal1.png', prompt:'Trade signal', name: 'signal', labels: valence_labels, required:true},
         {stimulus: 'img/win100.png', prompt:'Winning $100', name: 'winning', labels: valence_labels, required:true},
-        {stimulus: stim_list[0], prompt:'Planet A', name: 'planetA', labels: valence_labels, required:true},
-        {stimulus: stim_list[1], prompt:'Planet B', name: 'planetB', labels: valence_labels, required:true}
+        {stimulus: stim_list[0], prompt:'Planet A (left)', name: 'planetA', labels: valence_labels, required:true},
+        {stimulus: stim_list[1], prompt:'Planet B (right)', name: 'planetB', labels: valence_labels, required:true},
+        {stimulus: 'img/ship1.png', prompt:'Ship Type 1', name: 'ship1', labels: valence_labels, required:true},
+        {stimulus: 'img/ship2.png', prompt:'Ship Type 2', name: 'ship2', labels: valence_labels, required:true},
+        {stimulus: 'img/lose.png', prompt:'Losing $', name: 'losing', labels: valence_labels, required:true},
       ],
-      randomize_question_order: true,
+      randomize_question_order: false,
       data: {
         phase: 'val_check_2',
         block_number: i+1
       }
     };
 
-    // inference check p2 (planet A) part I
-    var infer_p2_A_1 = {
-      type: 'multi-image-slider-response',
+    // inference check p2 (planet A)
+    var infer_p2_A = {
+      type: 'inference-check-4',
       main_stimulus: stim_list[0],
       main_stimulus_height: main_stim_height,
-      prompt: inference_q[0],
+      prompt: inference_prompt[0],
       stimulus_1: inf_img_p2_A[0].stimulus,
       stimulus_2: inf_img_p2_A[1].stimulus,
       stimulus_3: inf_img_p2_A[2].stimulus,
+      stimulus_4: inf_img_p2_A[3].stimulus,
       stim_text_1: inf_img_p2_A[0].text,
       stim_text_2: inf_img_p2_A[1].text,
       stim_text_3: inf_img_p2_A[2].text,
-      labels: inference_labels,
+      stim_text_4: inf_img_p2_A[3].text,
+      slider_text_top: contingency_q[0],
+      slider_text_bottom: confidence_q[0],
+      labels_top: contingency_labels,
+      labels_bottom: confidence_labels,
       stimulus_height: inf_stim_height,
       slider_width: inf_slider_width,
       require_movement: true,
@@ -503,41 +569,24 @@
       }
     };
 
-    // inference check p2 (planet A) part II
-    var infer_p2_A_2 = {
-      type: 'multi-image-slider-response',
-      main_stimulus: stim_list[0],
-      main_stimulus_height: main_stim_height,
-      prompt: inference_q[0],
-      stimulus_1: inf_img_p2_A[3].stimulus,
-      stimulus_2: inf_img_p2_A[4].stimulus,
-      stimulus_3: inf_img_p2_A[5].stimulus,
-      stim_text_1: inf_img_p2_A[3].text,
-      stim_text_2: inf_img_p2_A[4].text,
-      stim_text_3: inf_img_p2_A[5].text,
-      labels: inference_labels,
-      stimulus_height: inf_stim_height,
-      slider_width: inf_slider_width,
-      require_movement: true,
-      data: {
-        phase: 'inf_check_A_2',
-        block_number: i+1
-      }
-    };
-
-    // inference check p2 (planet B) part I
-    var infer_p2_B_1 = {
-      type: 'multi-image-slider-response',
+    // inference check p2 (planet B)
+    var infer_p2_B = {
+      type: 'inference-check-4',
       main_stimulus: stim_list[1],
       main_stimulus_height: main_stim_height,
-      prompt: inference_q[1],
+      prompt: inference_prompt[1],
       stimulus_1: inf_img_p2_B[0].stimulus,
       stimulus_2: inf_img_p2_B[1].stimulus,
       stimulus_3: inf_img_p2_B[2].stimulus,
+      stimulus_4: inf_img_p2_B[3].stimulus,
       stim_text_1: inf_img_p2_B[0].text,
       stim_text_2: inf_img_p2_B[1].text,
       stim_text_3: inf_img_p2_B[2].text,
-      labels: inference_labels,
+      stim_text_4: inf_img_p2_B[3].text,
+      slider_text_top: contingency_q[1],
+      slider_text_bottom: confidence_q[1],
+      labels_top: contingency_labels,
+      labels_bottom: confidence_labels,
       stimulus_height: inf_stim_height,
       slider_width: inf_slider_width,
       require_movement: true,
@@ -547,33 +596,53 @@
       }
     };
 
-    // inference check p2 (planet B) part II
-    var infer_p2_B_2 = {
-      type: 'multi-image-slider-response',
-      main_stimulus: stim_list[1],
+    // inference check p2 (ship 1)
+    var infer_p2_ship1 = {
+      type: 'inference-check-1',
+      main_stimulus: 'img/ship1.png',
       main_stimulus_height: main_stim_height,
-      prompt: inference_q[1],
-      stimulus_1: inf_img_p2_B[3].stimulus,
-      stimulus_2: inf_img_p2_B[4].stimulus,
-      stimulus_3: inf_img_p2_B[5].stimulus,
-      stim_text_1: inf_img_p2_B[3].text,
-      stim_text_2: inf_img_p2_B[4].text,
-      stim_text_3: inf_img_p2_B[5].text,
-      labels: inference_labels,
+      prompt: inference_prompt[2],
+      stimulus_1: 'img/lose.png',
+      stim_text_1: 'Losing $',
+      slider_text_top: contingency_q[2],
+      slider_text_bottom: confidence_q[2],
+      labels_top: contingency_labels,
+      labels_bottom: confidence_labels,
       stimulus_height: inf_stim_height,
       slider_width: inf_slider_width,
       require_movement: true,
       data: {
-        phase: 'inf_check_B_2',
+        phase: 'inf_check_ship1_2',
         block_number: i+1
       }
     };
 
-		timeline.push(value_p2);
-		timeline.push(infer_p2_A_1);
-    timeline.push(infer_p2_A_2);
-    timeline.push(infer_p2_B_1);
-    timeline.push(infer_p2_B_2);
+    // inference check p2 (ship 2)
+    var infer_p2_ship2 = {
+      type: 'inference-check-1',
+      main_stimulus: 'img/ship2.png',
+      main_stimulus_height: main_stim_height,
+      prompt: inference_prompt[3],
+      stimulus_1: 'img/lose.png',
+      stim_text_1: 'Losing $',
+      slider_text_top: contingency_q[3],
+      slider_text_bottom: confidence_q[3],
+      labels_top: contingency_labels,
+      labels_bottom: confidence_labels,
+      stimulus_height: inf_stim_height,
+      slider_width: inf_slider_width,
+      require_movement: true,
+      data: {
+        phase: 'inf_check_ship2_2',
+        block_number: i+1
+      }
+    };
+
+		timeline.push(valence_p2);
+		timeline.push(infer_p2_A);
+    timeline.push(infer_p2_B);
+    timeline.push(infer_p2_ship1);
+    timeline.push(infer_p2_ship2);
 	}
 
   // ----- HREAP-C stuff -----
