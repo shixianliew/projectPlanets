@@ -9,7 +9,7 @@
  */
 
  // Modified by JL (2020)
- // Inference check (1 slider for )
+ // Inference check for 4 stimuli (contingency and confidence ratings)
 
 
 jsPsych.plugins['inference-check-4'] = (function() {

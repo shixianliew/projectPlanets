@@ -1,5 +1,5 @@
 /**
- * jspsych-inference-check-1
+ * jspsych-valence-check-3
  * a jspsych plugin for free response survey questions
  *
  * Josh de Leeuw
@@ -9,37 +9,19 @@
  */
 
  // Modified by JL (2020)
- // Inference check for 1 stimulus (contingency and confidence ratings)
+ // Valence check for 3 stimuli
 
 
-jsPsych.plugins['inference-check-1'] = (function() {
+jsPsych.plugins['valence-check-3'] = (function() {
 
   var plugin = {};
 
-  jsPsych.pluginAPI.registerPreload('inference-check-1', 'stimulus', 'image');
+  jsPsych.pluginAPI.registerPreload('valence-check-3', 'stimulus', 'image');
 
   plugin.info = {
-    name: 'inference-check-1',
+    name: 'valence-check-3',
     description: '',
     parameters: {
-      main_stimulus: {
-        type: jsPsych.plugins.parameterType.IMAGE,
-        pretty_name: 'Main stimulus',
-        default: undefined,
-        description: 'The large image to be displayed'
-      },
-      main_stimulus_height: {
-        type: jsPsych.plugins.parameterType.INT,
-        pretty_name: 'Main image height',
-        default: null,
-        description: 'Set the main image height in pixels'
-      },
-      main_stimulus_width: {
-        type: jsPsych.plugins.parameterType.INT,
-        pretty_name: 'Main image width',
-        default: null,
-        description: 'Set the main image width in pixels'
-      },
       stimulus_1: {
         type: jsPsych.plugins.parameterType.IMAGE,
         pretty_name: 'Stimulus 1',
@@ -51,6 +33,30 @@ jsPsych.plugins['inference-check-1'] = (function() {
         pretty_name: 'Stimulus text 1',
         default: null,
         description: 'Any content here will be displayed with stimulus 1.'
+      },
+      stimulus_2: {
+        type: jsPsych.plugins.parameterType.IMAGE,
+        pretty_name: 'Stimulus 2',
+        default: undefined,
+        description: 'The second image to be displayed'
+      },
+      stim_text_2: {
+        type: jsPsych.plugins.parameterType.STRING,
+        pretty_name: 'Stimulus text 2',
+        default: null,
+        description: 'Any content here will be displayed with stimulus 2.'
+      },
+      stimulus_3: {
+        type: jsPsych.plugins.parameterType.IMAGE,
+        pretty_name: 'Stimulus 3',
+        default: undefined,
+        description: 'The third image to be displayed'
+      },
+      stim_text_3: {
+        type: jsPsych.plugins.parameterType.STRING,
+        pretty_name: 'Stimulus text 3',
+        default: null,
+        description: 'Any content here will be displayed with stimulus 3.'
       },
       stimulus_height: {
         type: jsPsych.plugins.parameterType.INT,
@@ -94,31 +100,12 @@ jsPsych.plugins['inference-check-1'] = (function() {
         default: 1,
         description: 'Sets the step of the slider'
       },
-      slider_text_top: {
-        type: jsPsych.plugins.parameterType.STRING,
-        pretty_name: 'Top slider text',
-        default: null,
-        description: 'Any content here will be displayed with the top slider.'
-      },
-      slider_text_bottom: {
-        type: jsPsych.plugins.parameterType.STRING,
-        pretty_name: 'Bottom slider text',
-        default: null,
-        description: 'Any content here will be displayed with the bottom slider.'
-      },
-      labels_top: {
+      labels: {
         type: jsPsych.plugins.parameterType.HTML_STRING,
         pretty_name:'Labels',
         default: [],
         array: true,
-        description: 'Labels of the top slider.',
-      },
-      labels_bottom: {
-        type: jsPsych.plugins.parameterType.HTML_STRING,
-        pretty_name:'Labels',
-        default: [],
-        array: true,
-        description: 'Labels of the bottom slider.',
+        description: 'Labels of the slider.',
       },
       slider_width: {
         type: jsPsych.plugins.parameterType.INT,
@@ -168,26 +155,7 @@ jsPsych.plugins['inference-check-1'] = (function() {
 
   plugin.trial = function(display_element, trial) {
 
-    var html = '<div id="jspsych-inference-check-1-wrapper" style="margin: 100px 0px;">';
-
-    // main stimulus
-    html += '<div id="jspsych-inference-check-1-stimulus">';
-    html += '<img src="'+trial.main_stimulus+'" style="';
-    if(trial.main_stimulus_height !== null){
-      html += 'height:'+trial.main_stimulus_height+'px; '
-      if(trial.main_stimulus_width == null && trial.maintain_aspect_ratio){
-        html += 'width: auto; ';
-      }
-    }
-    if(trial.main_stimulus_width !== null){
-      html += 'width:'+trial.main_stimulus_width+'px; '
-      if(trial.main_stimulus_height == null && trial.maintain_aspect_ratio){
-        html += 'height: auto; ';
-      }
-    }
-
-    html += '"></img>';
-    html += '</div>';
+    var html = '<div id="jspsych-valence-check-3-wrapper" style="margin: 100px 0px;">';
 
     // prompt
     if (trial.prompt !== null){
@@ -196,7 +164,7 @@ jsPsych.plugins['inference-check-1'] = (function() {
 
     // -------------------------------- image 1 --------------------------------
 
-    html += '<div id="jspsych-inference-check-1-stimulus">';
+    html += '<div id="jspsych-valence-check-3-stimulus">';
     html += '<img src="'+trial.stimulus_1+'" style="';
     if(trial.stimulus_height !== null){
       html += 'height:'+trial.stimulus_height+'px; '
@@ -220,89 +188,151 @@ jsPsych.plugins['inference-check-1'] = (function() {
     }
     html += '<br><br>';
 
-    // ------------------------------ top slider -------------------------------
-
-    // slider question
-    if (trial.slider_text_top !== null){
-      html += trial.slider_text_top;
-    }
-
     // slider
-    html += '<div class="jspsych-inference-check-1-container" style="position:relative; margin: 0 auto 3em auto; ';
+    html += '<div class="jspsych-valence-check-3-container" style="position:relative; margin: 0 auto 3em auto; ';
     if(trial.slider_width !== null){
       html += 'width:'+trial.slider_width+'px;';
     }
     html += '">';
-    html += '<input type="range" value="'+trial.start+'" min="'+trial.min+'" max="'+trial.max+'" step="'+trial.step+'" style="width: 100%;" id="jspsych-inference-check-1-response"></input>';
+    html += '<input type="range" value="'+trial.start+'" min="'+trial.min+'" max="'+trial.max+'" step="'+trial.step+'" style="width: 100%;" id="jspsych-valence-check-3-response"></input>';
     html += '<div>'
-    for(var j=0; j < trial.labels_top.length; j++){
-      var width = 100/(trial.labels_top.length-1);
-      var left_offset = (j * (100 /(trial.labels_top.length - 1))) - (width/2);
+    for(var j=0; j < trial.labels.length; j++){
+      var width = 100/(trial.labels.length-1);
+      var left_offset = (j * (100 /(trial.labels.length - 1))) - (width/2);
       html += '<div style="display: inline-block; position: absolute; left:'+left_offset+'%; text-align: center; width: '+width+'%;">';
-      html += '<span style="text-align: center; font-size: 80%;">'+trial.labels_top[j]+'</span>';
+      html += '<span style="text-align: center; font-size: 80%;">'+trial.labels[j]+'</span>';
       html += '</div>'
     }
     html += '</div>';
     html += '</div>';
     html += '</div>';
+    html += '<br><br><br><hr><br><br><br>';
 
-    // ----------------------------- bottom slider -----------------------------
+    // -------------------------------- image 2 --------------------------------
 
-    // slider question
-    if (trial.slider_text_bottom !== null){
-      html += trial.slider_text_bottom;
+    html += '<div id="jspsych-valence-check-3-stimulus">';
+    html += '<img src="'+trial.stimulus_2+'" style="';
+    if(trial.stimulus_height !== null){
+      html += 'height:'+trial.stimulus_height+'px; '
+      if(trial.stimulus_width == null && trial.maintain_aspect_ratio){
+        html += 'width: auto; ';
+      }
+    }
+    if(trial.stimulus_width !== null){
+      html += 'width:'+trial.stimulus_width+'px; '
+      if(trial.stimulus_height == null && trial.maintain_aspect_ratio){
+        html += 'height: auto; ';
+      }
     }
 
-    // slider
-    html += '<div class="jspsych-inference-check-1-container" style="position:relative; margin: 0 auto 3em auto; ';
-    if(trial.slider_width !== null){
-      html += 'width:'+trial.slider_width+'px;';
+    html += '"></img>';
+    html += '</div>';
+
+    // stimulus text
+    if (trial.stim_text_2 !== null){
+      html += trial.stim_text_2;
     }
-    html += '">';
-    html += '<input type="range" value="'+trial.start+'" min="'+trial.min+'" max="'+trial.max+'" step="'+trial.step+'" style="width: 100%;" id="jspsych-inference-check-1-response2"></input>';
-    html += '<div>'
-    for(var j=0; j < trial.labels_bottom.length; j++){
-      var width = 100/(trial.labels_bottom.length-1);
-      var left_offset = (j * (100 /(trial.labels_bottom.length - 1))) - (width/2);
-      html += '<div style="display: inline-block; position: absolute; left:'+left_offset+'%; text-align: center; width: '+width+'%;">';
-      html += '<span style="text-align: center; font-size: 80%;">'+trial.labels_bottom[j]+'</span>';
-      html += '</div>'
-    }
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
     html += '<br><br>';
+
+    // slider
+    html += '<div class="jspsych-valence-check-3-container" style="position:relative; margin: 0 auto 3em auto; ';
+    if(trial.slider_width !== null){
+      html += 'width:'+trial.slider_width+'px;';
+    }
+    html += '">';
+    html += '<input type="range" value="'+trial.start+'" min="'+trial.min+'" max="'+trial.max+'" step="'+trial.step+'" style="width: 100%;" id="jspsych-valence-check-3-response2"></input>';
+    html += '<div>'
+    for(var j=0; j < trial.labels.length; j++){
+      var width = 100/(trial.labels.length-1);
+      var left_offset = (j * (100 /(trial.labels.length - 1))) - (width/2);
+      html += '<div style="display: inline-block; position: absolute; left:'+left_offset+'%; text-align: center; width: '+width+'%;">';
+      html += '<span style="text-align: center; font-size: 80%;">'+trial.labels[j]+'</span>';
+      html += '</div>'
+    }
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '<br><br><br><hr><br><br><br>';
+
+    // -------------------------------- image 3 --------------------------------
+
+    html += '<div id="jspsych-valence-check-3-stimulus">';
+    html += '<img src="'+trial.stimulus_3+'" style="';
+    if(trial.stimulus_height !== null){
+      html += 'height:'+trial.stimulus_height+'px; '
+      if(trial.stimulus_width == null && trial.maintain_aspect_ratio){
+        html += 'width: auto; ';
+      }
+    }
+    if(trial.stimulus_width !== null){
+      html += 'width:'+trial.stimulus_width+'px; '
+      if(trial.stimulus_height == null && trial.maintain_aspect_ratio){
+        html += 'height: auto; ';
+      }
+    }
+
+    html += '"></img>';
+    html += '</div>';
+
+    // stimulus text
+    if (trial.stim_text_3 !== null){
+      html += trial.stim_text_3;
+    }
+    html += '<br><br>';
+
+    // slider
+    html += '<div class="jspsych-valence-check-3-container" style="position:relative; margin: 0 auto 3em auto; ';
+    if(trial.slider_width !== null){
+      html += 'width:'+trial.slider_width+'px;';
+    }
+    html += '">';
+    html += '<input type="range" value="'+trial.start+'" min="'+trial.min+'" max="'+trial.max+'" step="'+trial.step+'" style="width: 100%;" id="jspsych-valence-check-3-response3"></input>';
+    html += '<div>'
+    for(var j=0; j < trial.labels.length; j++){
+      var width = 100/(trial.labels.length-1);
+      var left_offset = (j * (100 /(trial.labels.length - 1))) - (width/2);
+      html += '<div style="display: inline-block; position: absolute; left:'+left_offset+'%; text-align: center; width: '+width+'%;">';
+      html += '<span style="text-align: center; font-size: 80%;">'+trial.labels[j]+'</span>';
+      html += '</div>'
+    }
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '<br><br><br><hr><br><br><br>';
 
     // -------------------------------------------------------------------------
 
     // add submit button
-    html += '<button id="jspsych-inference-check-1-next" class="jspsych-btn" '+ (trial.require_movement ? "disabled" : "") + '>'+trial.button_label+'</button>';
+    html += '<button id="jspsych-valence-check-3-next" class="jspsych-btn" '+ (trial.require_movement ? "disabled" : "") + '>'+trial.button_label+'</button>';
 
     display_element.innerHTML = html;
 
     var response = {
       rt: null,
-      rate_1: null,
-      conf_1: null
+      val_1: null,
+      val_2: null,
+      val_3: null
     };
 
     if(trial.require_movement){
-      display_element.querySelector('#jspsych-inference-check-1-response2').addEventListener('change', function(){
-        display_element.querySelector('#jspsych-inference-check-1-next').disabled = false;
+      display_element.querySelector('#jspsych-valence-check-3-response3').addEventListener('change', function(){
+        display_element.querySelector('#jspsych-valence-check-3-next').disabled = false;
       })
     }
 
-    display_element.querySelector('#jspsych-inference-check-1-next').addEventListener('click', function() {
+    display_element.querySelector('#jspsych-valence-check-3-next').addEventListener('click', function() {
       // measure response time
       var endTime = performance.now();
       response.rt = endTime - startTime;
-      response.response1 = display_element.querySelector('#jspsych-inference-check-1-response').value;
-      response.response2 = display_element.querySelector('#jspsych-inference-check-1-response2').value;
+      // contingency and confidence ratings
+      response.response1 = display_element.querySelector('#jspsych-valence-check-3-response').value;
+      response.response2 = display_element.querySelector('#jspsych-valence-check-3-response2').value;
+      response.response3 = display_element.querySelector('#jspsych-valence-check-3-response3').value;
 
       if(trial.response_ends_trial){
         end_trial();
       } else {
-        display_element.querySelector('#jspsych-inference-check-1-next').disabled = true;
+        display_element.querySelector('#jspsych-valence-check-3-next').disabled = true;
       }
 
     });
@@ -314,8 +344,9 @@ jsPsych.plugins['inference-check-1'] = (function() {
       // save data
       var trialdata = {
         "rt": response.rt,
-        "rate_1": response.response1,
-        "conf_1": response.response2
+        "val_1": response.response1,
+        "val_2": response.response2,
+        "val_3": response.response3
       };
 
       display_element.innerHTML = '';
@@ -326,7 +357,7 @@ jsPsych.plugins['inference-check-1'] = (function() {
 
     if (trial.stimulus_duration !== null) {
       jsPsych.pluginAPI.setTimeout(function() {
-        display_element.querySelector('#jspsych-inference-check-1-stimulus').style.visibility = 'hidden';
+        display_element.querySelector('#jspsych-valence-check-3-stimulus').style.visibility = 'hidden';
       }, trial.stimulus_duration);
     }
 

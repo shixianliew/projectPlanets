@@ -11,7 +11,9 @@
     <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
   	<script src="jspsych-6.1.0/plugins/jspsych-image-keyboard-response.js"></script>
   	<script src="jspsych-6.1.0/plugins/planet-response.js"></script>
-    <script src="jspsych-6.1.0/plugins/jspsych-survey-image-likert.js"></script>
+    <!-- <script src="jspsych-6.1.0/plugins/jspsych-survey-image-likert.js"></script> -->
+    <script src="jspsych-6.1.0/plugins/jspsych-valence-check-3.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-valence-check-6.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-inference-check-1.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-inference-check-4.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-text.js"></script>
@@ -108,18 +110,18 @@
   ins.pretrain2 = [
     '<p>In this experiment you will be playing a game over 5 blocks. </p>' +
     '<p>In this game, you are an intergalactic trader in space. Your goal is to make as much intergalactic currency as possible! </p>' +
-    '<p>You will be situated between two planets that you can trade with. You can send a signal to each planet by clicking on them. Sometimes locals on these planets will receive the signal and be willing to trade. Each successful trade will earn you currency. </p>'
+    '<p>You will be situated between two planets that you can trade with. You can send a signal to each planet by clicking on them. Sometimes locals on these planets will receive the signal and be willing to trade. Each successful trade will give you currency. </p>'
     // '<p><b>Note:</b> Whatever you earn in-game will be converted into real money for you at the end of the experiment. The more you earn in-game, the more you make in real life. You can earn more currency by trading with both planets. </p>'
   ];
 
   ins.pretrain3 = [
-    '<p>You can click on each of the planets as many times as you like. Just remember, the aim is to earn as much currency as possible! </p>' +
+    '<p>You can click on each of the planets as many times as you like. Just remember, the aim is to accumulate as much currency as possible! </p>' +
     '<p>There are multiple blocks in this experiment. Between each block we will ask you some questions about each of the game elements. </p>'
   ];
 
   // instruction check
   var Q0_text = "<b>Question 1:</b> The aim of the task is to:";
-  var Q0_answers = ["Make as much currency as possible", "Battle the aliens on the planets"];
+  var Q0_answers = ["Get as much currency as possible", "Battle the aliens on the planets"];
   var Q1_text = "<b>Question 2:</b> Clicking on each planet will: ";
   var Q1_answers = ["Make the planet disappear", "Sometimes result in a successful trade, earning me currency"];
   var Q2_text = "<b>Question 3:</b> There will be multiple blocks in this experiment, with questions in between each block. ";
@@ -131,9 +133,9 @@
 
   ins.phase2 = [
     '<p>There have been reports of local pirates stealing from trading ships. Watch out! </p>' +
-    '<p>In the next few blocks, trading with a planet might result in the arrival of a pirate ship. </p>' +
+    // '<p>In the next few blocks, trading with a planet might result in the arrival of a pirate ship. </p>' +
     '<p>Your ship is equipped with a shield that can keep these pirates from stealing from you, but the shield will not always be available. If available, you can activate the shield by pressing the ACTIVATE button. </p>' +
-    '<p>Remember, your goal is still to earn as much currency as possible! </p>'
+    '<p>Remember, your goal is still to accumulate as much currency as possible! </p>'
   ];
 
   ins.debrief = [
@@ -148,12 +150,54 @@
   var valence_q = 'How do you feel about each of these game elements: ' +
   '<br><br>';
 
+  var val_img_p1 = [
+    {
+      stimulus: 'img/win100.png',
+      text: "Winning $100"
+    },
+    {
+      stimulus: stim_list[0],
+      text: "Planet A (left)"
+    },
+    {
+      stimulus: stim_list[1],
+      text: "Planet B (right)"
+    }
+  ];
+
+  var val_img_p2 = [
+    {
+      stimulus: 'img/win100.png',
+      text: "Winning $100"
+    },
+    {
+      stimulus: stim_list[0],
+      text: "Planet A (left)"
+    },
+    {
+      stimulus: stim_list[1],
+      text: "Planet B (right)"
+    },
+    {
+      stimulus: 'img/ship1.png',
+      text: "Ship 1"
+    },
+    {
+      stimulus: 'img/ship2.png',
+      text: "Ship 2"
+    },
+    {
+      stimulus: 'img/lose.png',
+      text: "Losing $"
+    }
+  ];
+
   var valence_labels = [
-    'Very negative',
-    'Slightly negative',
+    'Very <br>negative',
+    'Slightly <br>negative',
     'Neutral',
-    'Slightly positive',
-    'Very positive'
+    'Slightly <br>positive',
+    'Very <br>positive'
   ];
 
   // inference check prompt
@@ -174,10 +218,7 @@
 
   // confidence question
   var confidence_q = [
-    'How CONFIDENT are you that interacting with <b>planet A</b> led to the above outcome?',
-    'How CONFIDENT are you that interacting with <b>planet B</b> led to the above outcome?',
-    'How CONFIDENT are you that interacting with <b>Ship 1</b> led to the above outcome?',
-    'How CONFIDENT are you that interacting with <b>Ship 2</b> led to the above outcome?',
+    'How CONFIDENT are you about this estimate?'
   ];
 
   // phase 1, planet A
@@ -237,16 +278,16 @@
   ];
 
   var contingency_labels = [
-    '<p>' + 'Never' + '</p>',
+    '<p>' + 'Never' + '<br>(0%)</p>',
     '<p>' + 'Sometimes' + '</p>',
-    '<p>' + 'Every time' + '</p>'
+    '<p>' + 'Every time' + '<br>(100%)</p>'
   ];
 
   var confidence_labels = [
-    '<p>' + 'Very uncertain' + '</p>',
-    '<p>' + 'Somewhat uncertain' + '</p>',
-    '<p>' + 'Somewhat confident' + '</p>',
-    '<p>' + 'Very confident' + '</p>'
+    '<p>' + 'Very <br>uncertain' + '</p>',
+    '<p>' + 'Somewhat <br>uncertain' + '</p>',
+    '<p>' + 'Somewhat <br>confident' + '</p>',
+    '<p>' + 'Very <br>confident' + '</p>'
   ];
 
   // open-ended q
@@ -317,7 +358,7 @@
     type: "survey-multi-choice",
     preamble: ["<p align='center'><b>Check your knowledge before you begin!</b></p>"],
     questions: [
-      {prompt: Q0_text, options: Q0_answers, required: true,},
+      {prompt: Q0_text, options: Q0_answers, required: true},
       {prompt: Q1_text, options: Q1_answers, required: true},
       {prompt: Q2_text, options: Q2_answers, required: true}
         ],
@@ -428,19 +469,38 @@
 
 		// valence check p1
     var valence_p1 = {
-      type: 'survey-image-likert',
-      preamble: valence_q,
-      questions: [
-        {stimulus: 'img/win100.png', prompt:'Winning $100', name: 'winning', labels: valence_labels, required:true},
-        {stimulus: stim_list[0], prompt:'Planet A (left)', name: 'planetA', labels: valence_labels, required:true},
-        {stimulus: stim_list[1], prompt:'Planet B (right)', name: 'planetB', labels: valence_labels, required:true}
-      ],
-      randomize_question_order: false,
+      type: 'valence-check-3',
+      prompt: valence_q,
+      stimulus_1: val_img_p1[0].stimulus,
+      stim_text_1: val_img_p1[0].text,
+      stimulus_2: val_img_p1[1].stimulus,
+      stim_text_2: val_img_p1[1].text,
+      stimulus_3: val_img_p1[2].stimulus,
+      stim_text_3: val_img_p1[2].text,
+      labels: valence_labels,
+      stimulus_height: inf_stim_height,
+      slider_width: inf_slider_width,
+      require_movement: false,
       data: {
         phase: 'val_check_1',
         block_number: i+1
       }
     };
+
+    // var valence_p1 = {
+    //   type: 'survey-image-likert',
+    //   preamble: valence_q,
+    //   questions: [
+    //     {stimulus: 'img/win100.png', prompt:'Winning $100', name: 'winning', labels: valence_labels, required:true},
+    //     {stimulus: stim_list[0], prompt:'Planet A (left)', name: 'planetA', labels: valence_labels, required:true},
+    //     {stimulus: stim_list[1], prompt:'Planet B (right)', name: 'planetB', labels: valence_labels, required:true}
+    //   ],
+    //   randomize_question_order: false,
+    //   data: {
+    //     phase: 'val_check_1',
+    //     block_number: i+1
+    //   }
+    // };
 
     // inference check p1 (planet A)
     var infer_p1_A = {
@@ -451,14 +511,14 @@
       stimulus_1: inf_img_p1_A[0].stimulus,
       stim_text_1: inf_img_p1_A[0].text,
       slider_text_top: contingency_q[0],
-      slider_text_bottom: confidence_q[0],
+      slider_text_bottom: confidence_q,
       labels_top: contingency_labels,
       labels_bottom: confidence_labels,
       stimulus_height: inf_stim_height,
       slider_width: inf_slider_width,
-      require_movement: true,
+      require_movement: false,
       data: {
-        phase: 'inf_check_A_1',
+        phase: 'inf_check_1_A',
         block_number: i+1
       }
     };
@@ -472,14 +532,14 @@
       stimulus_1: inf_img_p1_B[0].stimulus,
       stim_text_1: inf_img_p1_B[0].text,
       slider_text_top: contingency_q[1],
-      slider_text_bottom: confidence_q[1],
+      slider_text_bottom: confidence_q,
       labels_top: contingency_labels,
       labels_bottom: confidence_labels,
       stimulus_height: inf_stim_height,
       slider_width: inf_slider_width,
-      require_movement: true,
+      require_movement: false,
       data: {
-        phase: 'inf_check_B_1',
+        phase: 'inf_check_1_B',
         block_number: i+1
       }
     };
@@ -525,22 +585,46 @@
 
     // value check p2
     var valence_p2 = {
-      type: 'survey-image-likert',
-      preamble: valence_q,
-      questions: [
-        {stimulus: 'img/win100.png', prompt:'Winning $100', name: 'winning', labels: valence_labels, required:true},
-        {stimulus: stim_list[0], prompt:'Planet A (left)', name: 'planetA', labels: valence_labels, required:true},
-        {stimulus: stim_list[1], prompt:'Planet B (right)', name: 'planetB', labels: valence_labels, required:true},
-        {stimulus: 'img/ship1.png', prompt:'Ship Type 1', name: 'ship1', labels: valence_labels, required:true},
-        {stimulus: 'img/ship2.png', prompt:'Ship Type 2', name: 'ship2', labels: valence_labels, required:true},
-        {stimulus: 'img/lose.png', prompt:'Losing $', name: 'losing', labels: valence_labels, required:true},
-      ],
-      randomize_question_order: false,
+      type: 'valence-check-6',
+      prompt: valence_q,
+      stimulus_1: val_img_p2[0].stimulus,
+      stim_text_1: val_img_p2[0].text,
+      stimulus_2: val_img_p2[1].stimulus,
+      stim_text_2: val_img_p2[1].text,
+      stimulus_3: val_img_p2[2].stimulus,
+      stim_text_3: val_img_p2[2].text,
+      stimulus_4: val_img_p2[3].stimulus,
+      stim_text_4: val_img_p2[3].text,
+      stimulus_5: val_img_p2[4].stimulus,
+      stim_text_5: val_img_p2[4].text,
+      stimulus_6: val_img_p2[5].stimulus,
+      stim_text_6: val_img_p2[5].text,
+      labels: valence_labels,
+      stimulus_height: inf_stim_height,
+      slider_width: inf_slider_width,
+      require_movement: false,
       data: {
         phase: 'val_check_2',
         block_number: i+1
       }
     };
+    // var valence_p2 = {
+    //   type: 'survey-image-likert',
+    //   preamble: valence_q,
+    //   questions: [
+    //     {stimulus: 'img/win100.png', prompt:'Winning $100', name: 'winning', labels: valence_labels, required:true},
+    //     {stimulus: stim_list[0], prompt:'Planet A (left)', name: 'planetA', labels: valence_labels, required:true},
+    //     {stimulus: stim_list[1], prompt:'Planet B (right)', name: 'planetB', labels: valence_labels, required:true},
+    //     {stimulus: 'img/ship1.png', prompt:'Ship Type 1', name: 'ship1', labels: valence_labels, required:true},
+    //     {stimulus: 'img/ship2.png', prompt:'Ship Type 2', name: 'ship2', labels: valence_labels, required:true},
+    //     {stimulus: 'img/lose.png', prompt:'Losing $', name: 'losing', labels: valence_labels, required:true},
+    //   ],
+    //   randomize_question_order: false,
+    //   data: {
+    //     phase: 'val_check_2',
+    //     block_number: i+1
+    //   }
+    // };
 
     // inference check p2 (planet A)
     var infer_p2_A = {
@@ -557,14 +641,14 @@
       stim_text_3: inf_img_p2_A[2].text,
       stim_text_4: inf_img_p2_A[3].text,
       slider_text_top: contingency_q[0],
-      slider_text_bottom: confidence_q[0],
+      slider_text_bottom: confidence_q,
       labels_top: contingency_labels,
       labels_bottom: confidence_labels,
       stimulus_height: inf_stim_height,
       slider_width: inf_slider_width,
-      require_movement: true,
+      require_movement: false,
       data: {
-        phase: 'inf_check_A_2',
+        phase: 'inf_check_2_A',
         block_number: i+1
       }
     };
@@ -584,14 +668,14 @@
       stim_text_3: inf_img_p2_B[2].text,
       stim_text_4: inf_img_p2_B[3].text,
       slider_text_top: contingency_q[1],
-      slider_text_bottom: confidence_q[1],
+      slider_text_bottom: confidence_q,
       labels_top: contingency_labels,
       labels_bottom: confidence_labels,
       stimulus_height: inf_stim_height,
       slider_width: inf_slider_width,
-      require_movement: true,
+      require_movement: false,
       data: {
-        phase: 'inf_check_B_2',
+        phase: 'inf_check_2_B',
         block_number: i+1
       }
     };
@@ -605,14 +689,14 @@
       stimulus_1: 'img/lose.png',
       stim_text_1: 'Losing $',
       slider_text_top: contingency_q[2],
-      slider_text_bottom: confidence_q[2],
+      slider_text_bottom: confidence_q,
       labels_top: contingency_labels,
       labels_bottom: confidence_labels,
       stimulus_height: inf_stim_height,
       slider_width: inf_slider_width,
-      require_movement: true,
+      require_movement: false,
       data: {
-        phase: 'inf_check_ship1_2',
+        phase: 'inf_check_2_ship1',
         block_number: i+1
       }
     };
@@ -626,14 +710,14 @@
       stimulus_1: 'img/lose.png',
       stim_text_1: 'Losing $',
       slider_text_top: contingency_q[3],
-      slider_text_bottom: confidence_q[3],
+      slider_text_bottom: confidence_q,
       labels_top: contingency_labels,
       labels_bottom: confidence_labels,
       stimulus_height: inf_stim_height,
       slider_width: inf_slider_width,
-      require_movement: true,
+      require_movement: false,
       data: {
-        phase: 'inf_check_ship2_2',
+        phase: 'inf_check_2_ship2',
         block_number: i+1
       }
     };
