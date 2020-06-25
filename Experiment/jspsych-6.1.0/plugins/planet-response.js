@@ -49,6 +49,13 @@ jsPsych.plugins["planet-response"] = (function() {
 				default: undefined,
 				description: 'Stimulus selection image on mouseover.'
 			},			
+			prompt: {
+				type: jsPsych.plugins.parameterType.STRING,
+				pretty_name: 'Prompt',
+				default: ['Planet A','Planet B'],
+				array: true,
+				description: 'Any content here will be displayed under the option.'
+			},
 			show_total_points: {
 				type: jsPsych.plugins.parameterType.BOOL,
 				pretty_name: 'Total Points',
@@ -61,31 +68,17 @@ jsPsych.plugins["planet-response"] = (function() {
 				default: 300,
 				description: 'Set the space between stimuli in pixels'
 			},
-			prompt: {
-				type: jsPsych.plugins.parameterType.STRING,
-				pretty_name: 'Prompt',
-				default: ['Planet A','Planet B'],
-				array: true,
-				description: 'Any content here will be displayed under the option.'
-			},
 			block_duration: {
 				type: jsPsych.plugins.parameterType.INT,
 				pretty_name: 'Block duration (ms)',
-				array: true,
 				default: 240*1000,
 				description: 'Duration of continuous block in ms.'
 			},
-			reset_planet_wait: {
+			feedback_duration: {
 				type: jsPsych.plugins.parameterType.INT,
-				pretty_name: 'Planet reset wait time',
-				default: 2000,
-				description: 'Time between end of last planet message and the resetting of planet choice.'
-			},		
-			reset_ship_wait: {
-				type: jsPsych.plugins.parameterType.INT,
-				pretty_name: 'Ship reset wait time',
-				default: 1000,
-				description: 'Time between end of last ship outcome and ship disappearance.'
+				pretty_name: 'Feedback duration (ms)',
+				default: 3000,
+				description: 'Duration of trade(planet) and ship feedback.'
 			},		
 			end_trial_wait: {
 				type: jsPsych.plugins.parameterType.INT,
@@ -93,12 +86,11 @@ jsPsych.plugins["planet-response"] = (function() {
 				default: 1000,
 				description: 'How long before the block ends after some final action.'
 			},
-			signal_time_range: {
+			signal_time: {
 				type: jsPsych.plugins.parameterType.INT,
-				pretty_name: 'Signal duration range',
-				array: true,
-				default: [2000,2000],
-				description: 'Range of duration of signal image above chosen planet, in ms.'
+				pretty_name: 'Signal duration',
+				default: 2000,
+				description: 'Duration of signal image above chosen planet, in ms.'
 			},
 			signal_height: {
 				type: jsPsych.plugins.parameterType.INT,
@@ -121,7 +113,7 @@ jsPsych.plugins["planet-response"] = (function() {
 			probability_win: {
 				type: jsPsych.plugins.parameterType.FLOAT,
 				pretty_name: 'P(trade success)',
-				default: [.5,0.5],
+				default: [.5, .5],
 				array:  true,
 				description: 'Probability of successful trade for each planet.'
 			},
@@ -137,6 +129,19 @@ jsPsych.plugins["planet-response"] = (function() {
 				pretty_name: 'Show ships',
 				default: false,			
 				description: 'Show ships after planet signal response.'
+			},
+			show_ship_delay: {
+				type: jsPsych.plugins.parameterType.INT,
+				pretty_name: 'Show ship delay',			
+				default: 2000,//1000,
+				description: 'Duration between trade attempt mouseclick and appearance of ship.'
+			},
+			probability_ship: {
+				type: jsPsych.plugins.parameterType.FLOAT,
+				pretty_name: 'Probability of ship appearance.',
+				array: true,
+				default: [.2, .2],
+				description: 'Probability the ship will appear when a planet button is clicked.'
 			},
 			ship_stimulus: {
 				type: jsPsych.plugins.parameterType.IMAGE,
@@ -157,29 +162,23 @@ jsPsych.plugins["planet-response"] = (function() {
 				default: 300,
 				description: 'Width of ship.'
 			},
-			show_ship_delay: {
-				type: jsPsych.plugins.parameterType.INT,
-				pretty_name: 'Show ship delay',			
-				default: 0,//1000,
-				description: 'Duration between presentation of planet reward and appearance of ship.'
-			},
 			ship_attack_time: {
 				type: jsPsych.plugins.parameterType.INT,
 				pretty_name: 'Ship Time to Attack',			
 				default: 4000,
 				description: 'Duration between ship appearance and attack.'
 			},
-			ship_hostile_idx: {
-				type: jsPsych.plugins.parameterType.INT,
-				pretty_name: 'Index of hostile ship',			
-				default: 1,
-				description: 'Index of hostile ship, can be 0 (left) or 1 (right).'
-			},
 			ship_attack_damage: {
 				type: jsPsych.plugins.parameterType.FLOAT,
 				pretty_name: 'Ship damage',			
 				default: .2,
 				description: 'Proportion of total points that an undefended encounter with the hostile ship removes.'
+			},
+			ship_hostile_idx: {
+				type: jsPsych.plugins.parameterType.INT,
+				pretty_name: 'Index of hostile ship',			
+				default: 0,
+				description: 'Index of hostile ship, can be 0 (left) or 1 (right).'
 			},
 			shield_charging_time: {
 				type: jsPsych.plugins.parameterType.INT,
@@ -190,9 +189,28 @@ jsPsych.plugins["planet-response"] = (function() {
 			probability_shield: {
 				type: jsPsych.plugins.parameterType.FLOAT,
 				pretty_name: 'Probability of shield',
-				default: .5,
+				default: 0.5,
 				description: 'Probability of shield availability after charging.'
 			},
+			shield_prevent_trading: {
+				type: jsPsych.plugins.parameterType.BOOL,
+				pretty_name: 'Shield prevents trading when active',			
+				default: true, 
+				description: 'Shield prevents trading when active.'
+			},
+			shield_cost_toggle: {
+				type: jsPsych.plugins.parameterType.BOOL,
+				pretty_name: 'Toggle shield activation cost',			
+				default: true, 
+				description: 'Toggle whether activating the shield incurs a cost.'
+			},
+			shield_cost_amount: {
+				type: jsPsych.plugins.parameterType.INT,
+				pretty_name: 'Shield activation cost',			
+				default: 50, 
+				description: 'Cost of shield activation (if shield_cost_toggle is true).'
+			},
+
 			cursor: {
 				type: jsPsych.plugins.parameterType.IMAGE,
 				pretty_name: 'Cursor images',
@@ -200,6 +218,26 @@ jsPsych.plugins["planet-response"] = (function() {
 				default: ['img/cursor.png','img/cursordark.png'],
 				description: '1st Element: default cursor; 2nd Element: mousedown cursor'
     		},
+			signal_time_range: {
+				type: jsPsych.plugins.parameterType.INT,
+				pretty_name: '[disabled]Signal duration range [currently disabled]',
+				array: true,
+				default: [2000,2000],
+				description: '[disabled] Range of duration of signal image above chosen planet, in ms.'
+			},
+			reset_planet_wait: {
+				type: jsPsych.plugins.parameterType.INT,
+				pretty_name: '[disabled]Planet reset wait time',
+				default: 2000,
+				description: '[disabled]Time between end of last planet message and the resetting of planet choice.'
+			},		
+			reset_ship_wait: {
+				type: jsPsych.plugins.parameterType.INT,
+				pretty_name: '[disabled]Ship reset wait time',
+				default: 1000,
+				description: '[disabled]Time between end of last ship outcome and ship disappearance.'
+			},		
+
 		}
 	}
 	
@@ -316,7 +354,7 @@ jsPsych.plugins["planet-response"] = (function() {
 		// Go through each choice and implement conditional mouseclick events, also mouseover, and select ring
 		for (var i = 0; i < trial.stimulus.length; i++) {
 			var element = display_element.querySelector('#planet-' + i)
-			var conditionStr = 'element.getAttribute("allowclick")=="1"'//'response.option==null'
+			var conditionStr = 'element.getAttribute("allowclick")=="1" && shield_activated!=true'//'response.option==null'
 			var styleDef = ['opacity:1;'];
 			var styleChange = ['opacity:.5;'];
 			var result = after_response;
@@ -397,9 +435,9 @@ jsPsych.plugins["planet-response"] = (function() {
 				'">'
 
 			// Generate the duration the signal will be presented
-			var signal_time_diff = Math.abs(trial.signal_time_range[1] - trial.signal_time_range[0])
-			var signal_time = Math.random()*signal_time_diff + trial.signal_time_range[0]
-
+			// var signal_time_diff = Math.abs(trial.signal_time_range[1] - trial.signal_time_range[0])
+			// var signal_time = Math.random()*signal_time_diff + trial.signal_time_range[0]
+			
 			//Implement trade attempt message
 			var signal_step_time = 250;
 			var signal_int_id = setInterval(sigframe,signal_step_time);
@@ -408,7 +446,7 @@ jsPsych.plugins["planet-response"] = (function() {
 			var signal_attempt_str = 'Attempting trade'
 			var signalmsg = signal_attempt_str + colordots(signal_dot_count_max,0,'black',signalclr)// '.'.
 			var signalclr = '#b4ba38' //some shade of yellow
-			var signal_max_time = signal_time+performance.now()
+			var signal_max_time = trial.signal_time+performance.now()
 			//Also vars for signal img
 			var signal_img_count_max = 4;
 			var signal_img_count = Math.ceil(Math.random() * signal_img_count_max);
@@ -469,6 +507,21 @@ jsPsych.plugins["planet-response"] = (function() {
 			//Check time and disable planets if final_action was flagged previously
 			checkTimeExceed()
 
+			var show_ship_check = false
+			var show_ship_samp = Math.random() 
+			if (show_ship_samp < trial.probability_ship[choice]){
+				show_ship_check = true
+			}
+			//console.log([show_ship_samp,show_ship_check])
+			// Start timer for ship
+			if (trial.show_ship && show_ship_check){
+				setTimeout(function(){
+					if (!shipVisible){
+						show_ship(choice);
+					}
+				},trial.show_ship_delay);				
+			}
+
 			// Wait before showing outcome
 			setTimeout(function(){
 				//Compute total points
@@ -478,15 +531,15 @@ jsPsych.plugins["planet-response"] = (function() {
 				updateScore(trial.data.points)
 				updateStatus(choice,statusmsg,statusclr)
 				
-				//Proceed to next step (ship or end trial)				
-				if (trial.show_ship){
-					setTimeout(function(){
-						if (!shipVisible){
-							show_ship(choice);
-						}
-					},trial.show_ship_delay);
+				// //Proceed to next step (ship or end trial)				
+				// if (trial.show_ship){
+				// 	setTimeout(function(){
+				// 		if (!shipVisible){
+				// 			show_ship(choice);
+				// 		}
+				// 	},trial.show_ship_delay);
 							   
-				}
+				// }
 				// Log response details
 				var time_outcome = performance.now()-start_time
 				response.planets.outcome.push(displayScore)
@@ -500,8 +553,8 @@ jsPsych.plugins["planet-response"] = (function() {
 				//reset planets after short delay
 				setTimeout(function(){
 					reset_planet(planet,choice)
-				}, trial.reset_planet_wait)								
-			}, signal_time)		  
+				}, trial.feedback_duration)//trial.reset_planet_wait
+			}, trial.signal_time)		  
 			
 		}
 
@@ -657,10 +710,32 @@ jsPsych.plugins["planet-response"] = (function() {
 			response.ships.rt_shield_activated.push(rt); //logging of activation state will be performed at time of ship attack
 
 			//Modify Shieldbutton text
-			shieldButton = display_element.querySelector('#ship-shield-button')
+			var shieldButton = display_element.querySelector('#ship-shield-button')
 			shieldButton.innerHTML = 'ACTIVE'
 			shieldButton.style.color = '#1eff19'
 			shieldButton.style.backgroundColor = '#196d17'
+
+			//Add cost if specified
+			var shieldTxt = display_element.querySelector('#ship-shield-text')
+			var shieldTxtStr = 'Shield activated'
+			if (trial.shield_cost_toggle){
+				shieldTxtStr = 'Shield cost: -' + trial.shield_cost_amount + ' points'
+				
+				trial.data.points -= trial.shield_cost_amount				
+				//Update score
+				updateScore(trial.data.points)
+
+				//log details
+				var time_outcome = performance.now()-start_time
+				response.all_outcomes.outcome.push(-trial.shield_cost_amount)
+				response.all_outcomes.time_outcome.push(time_outcome)
+				// Finally, update total
+				response.all_outcomes.total.push(trial.data.points)
+				//Xian todo 240620: Think about whether it makes sense to log the shield cost in
+				// the all_outcomes data or its own var, or whether it's needed at all?
+			}
+			shieldTxt.innerHTML = shieldTxtStr
+			
 		}
 
 		// function for ship to attack
@@ -675,6 +750,7 @@ jsPsych.plugins["planet-response"] = (function() {
 			response.ships.shield_activated.push(shield_activated)
 			
 			var pointslost = 0;
+			//var flag_shield_allow_trade = false; //Flag indicating shield was activated and that trade should be allowed
 			if (choice != trial.ship_hostile_idx || trial.ship_attack_damage==0){
 					var statusmsg = 'Ship passed by without incident'
 					var statusclr = '#b4ba38' //some shade of green								
@@ -718,7 +794,7 @@ jsPsych.plugins["planet-response"] = (function() {
 			//Reset ship
 			setTimeout(function(){				
 				reset_ship()
-			},trial.reset_ship_wait)
+			},trial.feedback_duration)//trial.reset_ship_wait
 		}
 
 		// function to end trial when it is time		
@@ -727,9 +803,14 @@ jsPsych.plugins["planet-response"] = (function() {
 				// kill any remaining setTimeout handlers
 				jsPsych.pluginAPI.clearAllTimeouts();
 
-				//Remove tracking and logging of mouseclicks
+				//Remove tracking and logging of mouseclicks and related events
 				document.removeEventListener('mousedown', getPositions)
 				document.removeEventListener('mouseup',resetCursor)
+				
+				for (var i = 0; i < trial.stimulus.length; i++) {
+					var planetEl = display_element.querySelector('#planet-' + i)							
+					planetEl.removeEventListener('mouseout',planet_mOut)
+				}
 				//Reset styles				
 				display_element.style.cursor = 'default'
 				display_wrapper.style.backgroundColor = '#FFFFFF'
@@ -972,7 +1053,7 @@ jsPsych.plugins["planet-response"] = (function() {
 			} 
 
 		}
-
+		
 		function checkTimeExceed(){
 			// Check if time exceeded, and if so, disable choices
 			var checkTime = (performance.now() - start_time) >= trial.block_duration
