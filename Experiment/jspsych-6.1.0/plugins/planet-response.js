@@ -131,7 +131,7 @@ jsPsych.plugins["planet-response"] = (function() {
 				type: jsPsych.plugins.parameterType.FLOAT,
 				pretty_name: 'Probability of ship appearance.',
 				array: true,
-				default: [.2, .2],
+				default: [1.0, 1.0],
 				description: 'Probability the ship will appear when a planet button is clicked.'
 			},
 			ship_stimulus: {
@@ -186,8 +186,9 @@ jsPsych.plugins["planet-response"] = (function() {
 			probability_shield: {
 				type: jsPsych.plugins.parameterType.FLOAT,
 				pretty_name: 'Probability of shield',
-				default: 0.5,
-				description: 'Probability of shield availability after charging.'
+				array: true,
+				default: [0.5, 0.5],
+				description: 'Probability of shield availability after charging for each ship.'
 			},
 			shield_prevent_trading: {
 				type: jsPsych.plugins.parameterType.BOOL,
@@ -195,6 +196,13 @@ jsPsych.plugins["planet-response"] = (function() {
 				default: true, 
 				description: 'Shield prevents trading when active.'
 			},
+			shield_balance: {
+				type: jsPsych.plugins.parameterType.BOOL,
+				pretty_name: 'Balance shield probabilities.',			
+				default: true, 
+				description: 'Balance shield availability probabilities.'
+			},
+
 			shield_cost_toggle: {
 				type: jsPsych.plugins.parameterType.BOOL,
 				pretty_name: 'Toggle shield activation cost',			
@@ -340,12 +348,18 @@ jsPsych.plugins["planet-response"] = (function() {
 		document.addEventListener('mousedown', getPositions)
 		document.addEventListener('mouseup', resetCursor)
 
-		//Important plugin-global variables
+		// Important plugin-global variables
 		var clickcnt = 0 // Track number of clicks
 		var final_action = false // flag this as true when time is more than block_duration
 		var shipVisible = false // Visibility state of ship img
 		var shield_activated = null //Shield state
+		//Also define variables to track shield state for balanced shield availability
+			// Define variable to store ship presentation
+		var shield_orderbase = [0,1] // Base set to randomise availability of shields
+		var shield_read = [[],[]] // Variable to build and read shield presentation from
+		var shield_log = [[],[]] //Variable to log ship-shield presentation
 
+		
 		// Go through each choice and implement conditional mouseclick events, also mouseover, and select ring
 		for (var i = 0; i < trial.stimulus.length; i++) {
 			var element = display_element.querySelector('#planet-' + i)
@@ -639,7 +653,7 @@ jsPsych.plugins["planet-response"] = (function() {
 
 			//Set shield charging timer and animation
 			setTimeout(function(){
-				proceed_shield();
+				proceed_shield(choice);
 			},trial.shield_charging_time)
 			//Charging box animation
 			var int_steps = 5; //ms
@@ -670,11 +684,35 @@ jsPsych.plugins["planet-response"] = (function() {
 
 		// function to update state of shield
 		var shield_start_time = null
-		function proceed_shield(){
+		function proceed_shield(choice){
+			if (trial.shield_balance) {
+				// First, check shield log
+				var baselength = shield_orderbase.length
+				var shield_length = shield_log[choice].length
+				var shield_next = shield_length
+				// Multiples of shield appearances have shield availability sampled from uniform random
+				if (shield_length/baselength == Math.round(shield_length/baselength)){
+					var shield_order = shuffleArray(shield_orderbase)
+					for (var ii=0; ii<shield_order.length; ii++){
+						shield_read[choice].push(shield_order[ii])
+					}
+				}
+				shield_success = Boolean(shield_read[choice][shield_next])
+				console.log('Shield read: ' + String(shield_read[0]) + '; ' + String(shield_read[1]))
+				console.log('Shield log: ' + String(shield_log[0]) + '; ' + String(shield_log[1]))
+
+				// Update shield log
+				shield_log[choice].push(Number(shield_success))
+				console.log('Shield log end: ' + String(shield_log[0]) + '; ' + String(shield_log[1]))
+				
+			} else {
+				// Run shield gamble
+				shield_success = Math.random() < trial.probability_shield[choice]
+			}
+			
+			//Define elements
 			var shieldTxtDiv = display_element.querySelector('#ship-shield-text');
 			var shieldButton = display_element.querySelector('#ship-shield-button');
-			// Run shield gamble
-			shield_success = Math.random() < trial.probability_shield
 			// Log shield state
 			response.ships.shield_available.push(shield_success)
 			//Update display
@@ -849,6 +887,7 @@ jsPsych.plugins["planet-response"] = (function() {
 					"ship_attack_time": trial.ship_attack_time,
 					"ship_attack_damage": trial.ship_attack_damage,
 					"shield_charging_time": trial.shield_charging_time,
+					//"shield_success": trial.shield_success,
 					"probability_shield": trial.probability_shield,
 					"shield_prevent_trading": trial.shield_prevent_trading,
 					"shield_cost_toggle": trial.shield_cost_toggle,
@@ -1126,6 +1165,25 @@ jsPsych.plugins["planet-response"] = (function() {
 		}
 
 	};
+
+		// ---------------------------------------------------------------------
+	  // Miscellaneous utility functions
+	  
+	  function shuffleArray(array) {
+		  let curId = array.length;
+		  // There remain elements to shuffle
+		  while (0 !== curId) {
+			  // Pick a remaining element
+			  let randId = Math.floor(Math.random() * curId);
+			  curId -= 1;
+			  // Swap it with the current element.
+			  let tmp = array[curId];
+			  array[curId] = array[randId];
+			  array[randId] = tmp;
+		  }
+		  return array;
+	  }
+
 
 	return plugin;
 })();

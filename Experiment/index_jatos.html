@@ -17,7 +17,7 @@
     <script src="jspsych-6.1.0/plugins/jspsych-inference-check-4.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-likert.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-text.js"></script>
-    //<script src="jatos.js"></script>
+    <script src="jatos.js"></script>
   </head>
   <body>
 
@@ -1126,11 +1126,11 @@
   //----------------------------------------------------------------------------
 	// start experiment
 
-//  jatos.onLoad(function() {
+  jatos.onLoad(function() {
 
     // subject info
-    var finish_url_base = ''//jatos.studyJsonInput.finish_url_base;
-    var sona_id = ''//jatos.urlQueryParameters.id;
+    var finish_url_base = jatos.studyJsonInput.finish_url_base;
+    var sona_id = jatos.urlQueryParameters.id;
     if (sona_id === undefined) {
         sona_id = null;
     }
@@ -1168,17 +1168,17 @@
   		preload_images: images,
       on_finish: function() {
         var result = jsPsych.data.get().json();
-/*        jatos.submitResultData(result, function() {
+        jatos.submitResultData(result, function() {
           document.write('<div id="endscreen" class="endscreen" style="width:1000px"><div class="endscreen" style="text-align:center; border:0px solid; padding:10px; font-size:120%; width:800px; float:right"><p><br><br><br>' +
           finish_msg +
           '</p></div></div>')
-        });*/
+        });
       }
 
 	});
 
 
-//  });
+  });
 
 	
   </script>
