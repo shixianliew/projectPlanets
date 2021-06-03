@@ -4,6 +4,9 @@ Authors: Jessica C. Lee & Shi Xian Liew
 
 Code repo for the planets + pirates task. Participants can click on two planets to receive probabilistic rewards. Clicking on a planet sometimes results in a ship (CS) appearing that either leads to a pirate attack (+) or nothing (-).
 
+For the specific plugin used in the studies reported in eLife, use planet-responseELife.js. planet-response.js will be
+used for further updates.
+
 Parameters for the planet-response plugin:
 
  - `stimulus` - Image files for the planets. Img file array. Default: `undefined`
