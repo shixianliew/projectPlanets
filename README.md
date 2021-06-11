@@ -24,7 +24,7 @@ Parameters for the planet-response plugin:
  - `signal_height` - Height of signal image in px. Integer. Default: `100`
  - `signal_width` - Width of signal image in px. Integer. Default: `80`
  - `signal_padding` - Blank space (padding) around signal image. Integer. Default: `10`
- - `probability_win` - Probability of successful trade for each planet. Integer array. Default: `[.5, .5]`
+ - `probability_trade` - Probability of successful trade for each planet. Integer array. Default: `[.5, .5]`
  - `rewards` - Rewards for each successful trade for each planet in points. Integer array. Default: `[100, 100]`
  - `show_ship` - Toggle ship appearance on this block. Boolean. Default: `false`
  - `show_ship_delay` - Duration between trade attempt mouseclick and appearance of ship in ms. Integer. Default: `2000`

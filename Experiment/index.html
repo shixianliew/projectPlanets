@@ -58,7 +58,7 @@
 	var continuousResp = true;
 	var nBlocks_p1 = 2;
 	var nBlocks_p2 = 4;
-  var block_duration = 180 * 1000; // in milliseconds (3 mins)
+  var block_duration = 180 * 1000; // in milliseconds (3 mins = 180 * 1000)
   var iti = 1000;
   var inf_stim_height = 80;
   var inf_slider_width = 500;
@@ -605,9 +605,9 @@
 		shield_charging_time: 3000,
 		ship_attack_time: 6000,
 		feedback_duration: feedback_duration,
-		probability_trade:[[.33],[.33]],
-		probability_ship:[[.85],[.85]],
-		probability_shield:[[.25],[.70]],
+		probability_trade:[[.5],[.5]],
+		probability_ship:[[.2],[.2]],
+		probability_shield:[[.25],[.25]],
 
 		data: {
 			phase: 'phase1',
@@ -624,6 +624,7 @@
 			points = data.points_total;
 			trial_number = data.trial_number;
 			trial_number++;
+
 			// script for continuous response block
 			if (continuousResp) {
 				jsPsych.endCurrentTimeline();
@@ -1170,7 +1171,7 @@
   		timeline: timeline,
   		preload_images: images,
       on_finish: function() {
-        var result = jsPsych.data.get().json();
+		  var result = jsPsych.data.get().json();		  
 /*        jatos.submitResultData(result, function() {
           document.write('<div id="endscreen" class="endscreen" style="width:1000px"><div class="endscreen" style="text-align:center; border:0px solid; padding:10px; font-size:120%; width:800px; float:right"><p><br><br><br>' +
           finish_msg +

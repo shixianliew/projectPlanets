@@ -444,13 +444,13 @@ jsPsych.plugins["planet-response"] = (function() {
 			response.planets.time_select.push(rt);
 			response.planets.click_idx.push(click_idx)
 
-			//Run gamble procedure
-			proceed_gamble(choice);
+			//Run trade procedure
+			proceed_trade(choice);
 		};
 	
 
-		// function to show the signal, run gamble, then show outcome
-		function proceed_gamble(choice){
+		// function to show the signal, run trade, then show outcome
+		function proceed_trade(choice){
 			//Get planet position
 			var signalPadding = trial.signal_padding
 			var planet = display_element.querySelector('#planet-' + choice)
@@ -523,7 +523,7 @@ jsPsych.plugins["planet-response"] = (function() {
 				return outStr
 			}
 
-			// Run gamble
+			// Run trade
 
 			if (trial.trade_balance){
 				var tradeBalOut = balanceSuccess(trade_orderbase,trade_log,trade_read,choice,true,'trade')
@@ -1225,8 +1225,8 @@ jsPsych.plugins["planet-response"] = (function() {
 		return +(test.toFixed(digits));
 	}
 	
-	function genOrderBase(probSuccess,maxlength=10){
-	//window.genOrderBase = function(probSuccess,maxlength=10){
+	//function genOrderBase(probSuccess,maxlength=10){
+	window.genOrderBase = function(probSuccess,maxlength=10){
 		//Function to generate a finite array of 1 (success) and (0) fails that closely approximates (if not exact) to some probability.
 		// So if probSuccess is .5, this should return [0,1].
 		// For a given max array length, generate all floating point numbers for all possible proportions
