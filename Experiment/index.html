@@ -17,7 +17,7 @@
     <script src="jspsych-6.1.0/plugins/jspsych-inference-check-4.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-likert.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-text.js"></script>
-    //<script src="jatos.js"></script>
+    <!--<script src="jatos.js"></script>-->
   </head>
   <body>
 
@@ -605,6 +605,10 @@
 		shield_charging_time: 3000,
 		ship_attack_time: 6000,
 		feedback_duration: feedback_duration,
+		probability_trade:[[.33],[.33]],
+		probability_ship:[[.85],[.85]],
+		probability_shield:[[.25],[.70]],
+
 		data: {
 			phase: 'phase1',
 			block_type: 'planet_noship',
@@ -741,7 +745,6 @@
 	planet_ship.data.block_type = 'planet_ship';
 	planet_ship.show_ship_delay = rf_ship_delay;
 	planet_ship.data.phase = 'Phase2';
-	
 	// push specified number of blocks into timeline
 	for (var i=0; i<nBlocks_p2; i++){
 
